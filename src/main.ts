@@ -1,19 +1,77 @@
-import * as core from '@actions/core';
-import { wait } from './wait';
+import { getInput, setFailed } from '@actions/core';
 
-async function run(): Promise<void> {
-  try {
-    const ms: string = core.getInput('milliseconds');
-    core.debug(`Waiting ${ms} milliseconds ...`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
+import '@total-typescript/ts-reset';
 
-    core.debug(new Date().toTimeString());
-    await wait(parseInt(ms, 10));
-    core.debug(new Date().toTimeString());
+import action from './action';
+import { Octokit } from '@octokit/core';
+import { z } from 'zod';
+import { pullRequestMetadataSchema } from './schema/input';
+import { updateStatusCheck } from './util';
 
-    core.setOutput('time', new Date().toTimeString());
-  } catch (error) {
-    if (error instanceof Error) core.setFailed(error.message);
+const octokit = new Octokit({
+  auth: getInput('token', { required: true }),
+});
+
+const owner = z
+  .string()
+  .min(1)
+  .parse(process.env.GITHUB_REPOSITORY?.split('/')[0]);
+const repo = z
+  .string()
+  .min(1)
+  .parse(process.env.GITHUB_REPOSITORY?.split('/')[1]);
+
+const prMetadataUnsafe = JSON.parse(
+  getInput('pr-metadata', { required: true })
+);
+
+const prMetadata = pullRequestMetadataSchema.parse(prMetadataUnsafe);
+const commitSha = prMetadata.commits[prMetadata.commits.length - 1].sha;
+
+const checkRunID = (
+  await octokit.request('POST /repos/{owner}/{repo}/check-runs', {
+    owner,
+    repo,
+    name: 'Tracker Validation',
+    head_sha: commitSha,
+    status: 'in_progress',
+    started_at: new Date().toISOString(),
+    output: {
+      title: 'Tracker Validation',
+      summary: 'Tracker validation in progress ...',
+    },
+  })
+).data.id;
+
+try {
+  const message = await action(octokit, owner, repo, prMetadata);
+
+  await updateStatusCheck(
+    octokit,
+    checkRunID,
+    owner,
+    repo,
+    'completed' as unknown as undefined,
+    'success',
+    message
+  );
+} catch (error) {
+  let message: string;
+
+  if (error instanceof Error) {
+    message = error.message;
+  } else {
+    message = JSON.stringify(error);
   }
-}
 
-run();
+  setFailed(message);
+  await updateStatusCheck(
+    octokit,
+    checkRunID,
+    owner,
+    repo,
+    'completed' as unknown as undefined,
+    'failure',
+    message
+  );
+}
