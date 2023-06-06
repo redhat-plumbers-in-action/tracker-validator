@@ -1,13 +1,50 @@
-import { setFailed } from '@actions/core';
-import run from '@probot/adapter-github-actions';
+var _a, _b;
+import { getInput, setFailed } from '@actions/core';
 import '@total-typescript/ts-reset';
 import action from './action';
+import { Octokit } from '@octokit/core';
+import { z } from 'zod';
+import { pullRequestMetadataSchema } from './schema/input';
+import { updateStatusCheck } from './util';
+const octokit = new Octokit({
+    auth: getInput('token', { required: true }),
+});
+const owner = z
+    .string()
+    .min(1)
+    .parse((_a = process.env.GITHUB_REPOSITORY) === null || _a === void 0 ? void 0 : _a.split('/')[0]);
+const repo = z
+    .string()
+    .min(1)
+    .parse((_b = process.env.GITHUB_REPOSITORY) === null || _b === void 0 ? void 0 : _b.split('/')[1]);
+const prMetadataUnsafe = JSON.parse(getInput('pr-metadata', { required: true }));
+const prMetadata = pullRequestMetadataSchema.parse(prMetadataUnsafe);
+const commitSha = prMetadata.commits[prMetadata.commits.length - 1].sha;
+const checkRunID = (await octokit.request('POST /repos/{owner}/{repo}/check-runs', {
+    owner,
+    repo,
+    name: 'Tracker Validation',
+    head_sha: commitSha,
+    status: 'in_progress',
+    started_at: new Date().toISOString(),
+    output: {
+        title: 'Tracker Validation',
+        summary: 'Tracker validation in progress',
+    },
+})).data.id;
 try {
-    await run.run(action);
+    const message = await action(octokit, owner, repo, prMetadata);
+    await updateStatusCheck(octokit, checkRunID, owner, repo, 'completed', 'success', message);
 }
 catch (error) {
-    error instanceof Error
-        ? setFailed(error.message)
-        : setFailed(error);
+    let message;
+    if (error instanceof Error) {
+        message = error.message;
+    }
+    else {
+        message = JSON.stringify(error);
+    }
+    setFailed(message);
+    await updateStatusCheck(octokit, checkRunID, owner, repo, 'completed', 'failure', message);
 }
 //# sourceMappingURL=main.js.map
