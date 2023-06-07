@@ -1,8 +1,8 @@
 import { debug, getInput } from '@actions/core';
+import { Octokit } from '@octokit/core';
 import { z } from 'zod';
 
 import { Bugzilla } from './bugzilla';
-import { Octokit } from '@octokit/core';
 import { PullRequestMetadata } from './schema/input';
 import {
   getFailedMessage,
@@ -80,7 +80,7 @@ async function action(
     );
   }
 
-  // TODO: Once validated update Tracker status and add comment/attachment with link to PR
+  // TODO: Once validated update Tracker status and add/update comment in PR
 
   setLabels(octokit, owner, repo, prMetadata.number, labels.add);
 

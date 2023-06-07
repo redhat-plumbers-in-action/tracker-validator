@@ -1,5 +1,5 @@
 {
-  "name": "verify-tracker",
+  "name": "tracker-validator",
   "version": "1.0.0",
   "description": "",
   "main": "src/main.ts",
@@ -19,8 +19,9 @@
   },
   "keywords": [
     "actions",
-    "node",
-    "setup"
+    "jira",
+    "bugzilla",
+    "validator"
   ],
   "author": "jamacku@redhat.com",
   "license": "MIT",

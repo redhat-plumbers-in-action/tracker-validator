@@ -1,6 +1,6 @@
 ---
 
-name: Verify Tracker
+name: Tracker Validator
 description: Bugzilla and Jira validation for Pull Requests
 
 branding:
