@@ -38,7 +38,7 @@ const checkRunID = (
     started_at: new Date().toISOString(),
     output: {
       title: 'Tracker Validation',
-      summary: 'Tracker validation in progress',
+      summary: 'Tracker validation in progress ...',
     },
   })
 ).data.id;

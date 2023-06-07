@@ -29,7 +29,7 @@ const checkRunID = (await octokit.request('POST /repos/{owner}/{repo}/check-runs
     started_at: new Date().toISOString(),
     output: {
         title: 'Tracker Validation',
-        summary: 'Tracker validation in progress',
+        summary: 'Tracker validation in progress ...',
     },
 })).data.id;
 try {

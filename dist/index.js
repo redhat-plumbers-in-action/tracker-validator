@@ -24893,7 +24893,10 @@ class Bugzilla {
     }
 }
 
+// EXTERNAL MODULE: ./src/util.ts
+var util = __nccwpck_require__(2629);
 ;// CONCATENATED MODULE: ./src/action.ts
+
 
 
 
@@ -24902,36 +24905,46 @@ async function action(octokit, owner, repo, prMetadata) {
     const bzAPIToken = (0,core.getInput)('bugzilla-api-token', { required: true });
     const bugzilla = new Bugzilla(bzInstance, bzAPIToken);
     (0,core.debug)(`Using Bugzilla '${bzInstance}', version: '${await bugzilla.api.version()}'`);
-    // TODO: improve error message
     const bzTracker = lib.z.coerce.number().parse((0,core.getInput)('bugzilla-tracker'));
+    const bzTrackerURL = `${bzInstance}/show_bug.cgi?id=${bzTracker}`;
     const product = (0,core.getInput)('product');
     const component = (0,core.getInput)('component', { required: true });
-    let message = '';
     const bugDetails = await bugzilla.api
         .getBugs([bzTracker])
         .include(['id', 'summary', 'product', 'component', 'flags']);
+    let message = [];
+    let err = [];
+    let labels = { add: [], remove: [] };
     if (!Bugzilla.isMatchingProduct(product, bugDetails[0])) {
-        // todo set label, set status, update summary comment
-        const err = `Bugzilla tracker ${bzTracker} has product '${bugDetails[0].product}' but desired product is '${product}'`;
-        throw new Error(err);
+        labels.add.push('bz/invalid-product');
+        err.push(`🔴 Bugzilla tracker [#${bzTracker}](${bzTrackerURL}) has product \`${bugDetails[0].product}\` but desired product is \`${product}\``);
     }
-    message += `✅ Bugzilla tracker ${bzTracker} has set desired product: '${product}'\n`;
+    else {
+        (0,util/* removeLabel */.qv)(octokit, owner, repo, prMetadata.number, 'bz/invalid-product');
+        message.push(`🟢 Bugzilla tracker [#${bzTracker}](${bzTrackerURL}) has set desired product: \`${product}\``);
+    }
     if (!Bugzilla.isMatchingComponent(component, bugDetails[0])) {
-        // todo set label, set status, update summary comment
-        const err = `Bugzilla tracker ${bzTracker} has component '${bugDetails[0].component[0]}' but desired component is '${component}'`;
-        throw new Error(err);
+        labels.add.push('bz/invalid-component');
+        err.push(`🔴 Bugzilla tracker [#${bzTracker}](${bzTrackerURL}) has component \`${bugDetails[0].component[0]}\` but desired component is \`${component}\``);
     }
-    message += `✅ Bugzilla tracker ${bzTracker} has set desired component: '${component}'\n`;
+    else {
+        (0,util/* removeLabel */.qv)(octokit, owner, repo, prMetadata.number, 'bz/invalid-component');
+        message.push(`🟢 Bugzilla tracker [#${bzTracker}](${bzTrackerURL}) has set desired component: \`${component}\``);
+    }
     if (!Bugzilla.isApproved(bugDetails[0].flags)) {
-        // todo set label, set status, update summary comment
-        const err = `Bugzilla tracker ${bzTracker} has not been approved`;
-        throw new Error(err);
+        labels.add.push('bz/unapproved');
+        err.push(`🔴 Bugzilla tracker [#${bzTracker}](${bzTrackerURL}) has not been approved`);
     }
-    message += `✅ Bugzilla tracker ${bzTracker} has been approved\n`;
-    // check release
-    // TODO: check release or at lease product RHEL 7, 8, 9, etc.
+    else {
+        (0,util/* removeLabel */.qv)(octokit, owner, repo, prMetadata.number, 'bz/unapproved');
+        message.push(`🟢 Bugzilla tracker [#${bzTracker}](${bzTrackerURL}) has been approved`);
+    }
     // TODO: Once validated update Tracker status and add comment/attachment with link to PR
-    return message;
+    (0,util/* setLabels */.Uu)(octokit, owner, repo, prMetadata.number, labels.add);
+    if (err.length > 0) {
+        throw new Error((0,util/* getFailedMessage */.T5)(err) + '\n\n' + (0,util/* getSuccessMessage */.Yr)(message));
+    }
+    return (0,util/* getSuccessMessage */.Yr)(message);
 }
 /* harmony default export */ const src_action = (action);
 
@@ -24947,11 +24960,11 @@ __nccwpck_require__.r(__webpack_exports__);
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2186);
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _action__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(5464);
-/* harmony import */ var _octokit_core__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(6762);
-/* harmony import */ var _octokit_core__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__nccwpck_require__.n(_octokit_core__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var zod__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(2300);
+/* harmony import */ var _octokit_core__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(6762);
+/* harmony import */ var _octokit_core__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__nccwpck_require__.n(_octokit_core__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var zod__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(2300);
 /* harmony import */ var _schema_input__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(9281);
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(2629);
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(2629);
 var _a, _b;
 
 
@@ -24960,13 +24973,13 @@ var _a, _b;
 
 
 
-const octokit = new _octokit_core__WEBPACK_IMPORTED_MODULE_3__.Octokit({
+const octokit = new _octokit_core__WEBPACK_IMPORTED_MODULE_4__.Octokit({
     auth: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)('token', { required: true }),
 });
-const owner = zod__WEBPACK_IMPORTED_MODULE_4__.z.string()
+const owner = zod__WEBPACK_IMPORTED_MODULE_5__.z.string()
     .min(1)
     .parse((_a = process.env.GITHUB_REPOSITORY) === null || _a === void 0 ? void 0 : _a.split('/')[0]);
-const repo = zod__WEBPACK_IMPORTED_MODULE_4__.z.string()
+const repo = zod__WEBPACK_IMPORTED_MODULE_5__.z.string()
     .min(1)
     .parse((_b = process.env.GITHUB_REPOSITORY) === null || _b === void 0 ? void 0 : _b.split('/')[1]);
 const prMetadataUnsafe = JSON.parse((0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)('pr-metadata', { required: true }));
@@ -24981,12 +24994,12 @@ const checkRunID = (await octokit.request('POST /repos/{owner}/{repo}/check-runs
     started_at: new Date().toISOString(),
     output: {
         title: 'Tracker Validation',
-        summary: 'Tracker validation in progress',
+        summary: 'Tracker validation in progress ...',
     },
 })).data.id;
 try {
     const message = await (0,_action__WEBPACK_IMPORTED_MODULE_1__/* ["default"] */ .Z)(octokit, owner, repo, prMetadata);
-    await (0,_util__WEBPACK_IMPORTED_MODULE_5__/* .updateStatusCheck */ .B)(octokit, checkRunID, owner, repo, 'completed', 'success', message);
+    await (0,_util__WEBPACK_IMPORTED_MODULE_3__/* .updateStatusCheck */ .B3)(octokit, checkRunID, owner, repo, 'completed', 'success', message);
 }
 catch (error) {
     let message;
@@ -24997,7 +25010,7 @@ catch (error) {
         message = JSON.stringify(error);
     }
     (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed)(message);
-    await (0,_util__WEBPACK_IMPORTED_MODULE_5__/* .updateStatusCheck */ .B)(octokit, checkRunID, owner, repo, 'completed', 'failure', message);
+    await (0,_util__WEBPACK_IMPORTED_MODULE_3__/* .updateStatusCheck */ .B3)(octokit, checkRunID, owner, repo, 'completed', 'failure', message);
 }
 
 __webpack_async_result__();
@@ -25040,11 +25053,21 @@ const pullRequestMetadataSchema = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
 
 "use strict";
 /* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   "B": () => (/* binding */ updateStatusCheck)
+/* harmony export */   "B3": () => (/* binding */ updateStatusCheck),
+/* harmony export */   "T5": () => (/* binding */ getFailedMessage),
+/* harmony export */   "Uu": () => (/* binding */ setLabels),
+/* harmony export */   "Yr": () => (/* binding */ getSuccessMessage),
+/* harmony export */   "qv": () => (/* binding */ removeLabel)
 /* harmony export */ });
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2186);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_0__);
+
 // import { Endpoints } from '@octokit/types';
 // Update check run - check completed + conclusion
 // https://docs.github.com/en/rest/checks/runs?apiVersion=2022-11-28#update-a-check-run
+// ! Allow specifying workflow run when creating a checkrun from a GitHub workflow
+// !FIXME: Issue - https://github.com/orgs/community/discussions/14891#discussioncomment-6110666
+// !FIXME: Issue - https://github.com/orgs/community/discussions/24616
 async function updateStatusCheck(octokit, checkID, owner, repo, 
 // https://github.com/octokit/types.ts/issues/283#issuecomment-1579239229
 // Endpoints['POST /repos/{owner}/{repo}/check-runs']['parameters']['status']
@@ -25063,6 +25086,38 @@ conclusion, message) {
             title: 'Tracker Validation',
             summary: message,
         },
+    });
+}
+function getFailedMessage(error) {
+    if (error.length === 0) {
+        return '';
+    }
+    return '### Failed' + '\n\n' + error.join('\n');
+}
+function getSuccessMessage(message) {
+    if (message.length === 0) {
+        return '';
+    }
+    return '### Success' + '\n\n' + message.join('\n');
+}
+async function setLabels(octokit, owner, repo, issueNumber, labels) {
+    if (labels.length === 0) {
+        (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.debug)('No labels to set');
+        return;
+    }
+    await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/labels', {
+        owner,
+        repo,
+        issue_number: issueNumber,
+        labels,
+    });
+}
+async function removeLabel(octokit, owner, repo, issueNumber, label) {
+    await octokit.request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}', {
+        owner,
+        repo,
+        issue_number: issueNumber,
+        name: label,
     });
 }
 
