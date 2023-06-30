@@ -1,4 +1,5 @@
-import { debug, getInput } from '@actions/core';
+import { debug, getInput, warning } from '@actions/core';
+import fetch from 'node-fetch';
 import { Octokit } from '@octokit/core';
 import { z } from 'zod';
 
@@ -25,7 +26,7 @@ async function action(
     `Using Bugzilla '${bzInstance}', version: '${await bugzilla.api.version()}'`
   );
 
-  const bzTracker = z.coerce.number().parse(getInput('bugzilla-tracker'));
+  const bzTracker = z.coerce.number().parse(getInput('tracker'));
   const bzTrackerURL = `${bzInstance}/show_bug.cgi?id=${bzTracker}`;
   const product = getInput('product');
   const component = getInput('component', { required: true });
@@ -38,13 +39,36 @@ async function action(
   let err: string[] = [];
   let labels: { add: string[]; remove: string[] } = { add: [], remove: [] };
 
+  const labelsFromPR = z
+    .array(z.object({ name: z.string() }).transform(label => label.name))
+    .parse(
+      (
+        await octokit.request(
+          'GET /repos/{owner}/{repo}/issues/{issue_number}/labels',
+          {
+            owner,
+            repo,
+            issue_number: prMetadata.number,
+          }
+        )
+      ).data
+    );
+
   if (!Bugzilla.isMatchingProduct(product, bugDetails[0])) {
     labels.add.push('bz/invalid-product');
     err.push(
       `🔴 Bugzilla tracker [#${bzTracker}](${bzTrackerURL}) has product \`${bugDetails[0].product}\` but desired product is \`${product}\``
     );
   } else {
-    removeLabel(octokit, owner, repo, prMetadata.number, 'bz/invalid-product');
+    if (labelsFromPR.includes('bz/invalid-product')) {
+      removeLabel(
+        octokit,
+        owner,
+        repo,
+        prMetadata.number,
+        'bz/invalid-product'
+      );
+    }
     message.push(
       `🟢 Bugzilla tracker [#${bzTracker}](${bzTrackerURL}) has set desired product: \`${product}\``
     );
@@ -56,13 +80,15 @@ async function action(
       `🔴 Bugzilla tracker [#${bzTracker}](${bzTrackerURL}) has component \`${bugDetails[0].component[0]}\` but desired component is \`${component}\``
     );
   } else {
-    removeLabel(
-      octokit,
-      owner,
-      repo,
-      prMetadata.number,
-      'bz/invalid-component'
-    );
+    if (labelsFromPR.includes('bz/invalid-component')) {
+      removeLabel(
+        octokit,
+        owner,
+        repo,
+        prMetadata.number,
+        'bz/invalid-component'
+      );
+    }
     message.push(
       `🟢 Bugzilla tracker [#${bzTracker}](${bzTrackerURL}) has set desired component: \`${component}\``
     );
@@ -74,11 +100,49 @@ async function action(
       `🔴 Bugzilla tracker [#${bzTracker}](${bzTrackerURL}) has not been approved`
     );
   } else {
-    removeLabel(octokit, owner, repo, prMetadata.number, 'bz/unapproved');
+    if (labelsFromPR.includes('bz/unapproved')) {
+      removeLabel(octokit, owner, repo, prMetadata.number, 'bz/unapproved');
+    }
     message.push(
       `🟢 Bugzilla tracker [#${bzTracker}](${bzTrackerURL}) has been approved`
     );
   }
+
+  warning('Adding external bug ...');
+  const jsonrpc = await fetch(`${bzInstance}/jsonrpc.cgi`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${bzAPIToken}`,
+    },
+    body: JSON.stringify({
+      jsonrpc: '1.0',
+      method: 'ExternalBugs.add_external_bug',
+      params: [
+        {
+          bug_ids: [2013411],
+          external_bugs: [
+            {
+              ext_type_url: 'https://github.com/',
+              ext_bz_bug_id: `${owner}/${repo}/pull/${prMetadata.number}`,
+            },
+          ],
+        },
+      ],
+      id: 'identifier',
+    }),
+  });
+  warning(`jsonrpc: ${JSON.stringify(jsonrpc)}`);
+
+  // TODO: Update Bugzilla status to POST
+  warning('Setting see_also ...');
+  let response = await bugzilla.api.updateBug(bzTracker, {
+    ids: [bzTracker],
+    id_or_alias: bzTracker,
+    status: 'POST',
+  });
+
+  warning(`see_also: ${JSON.stringify(response)}`);
 
   // TODO: Once validated update Tracker status and add/update comment in PR
 

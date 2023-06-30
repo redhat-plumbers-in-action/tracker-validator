@@ -19,7 +19,7 @@ describe('test basic Bugzilla API functions', () => {
     const version = await context.bugzilla.api.version();
 
     expect(version).toBeDefined();
-    expect(version).toEqual('5.0.4.rh87');
+    expect(version).toEqual('5.0.4.rh88');
 
     const bzTracker = process.env['INPUT_BUGZILLA-TRACKER'] ?? '';
     const bug = await context.bugzilla.api

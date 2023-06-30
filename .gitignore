@@ -109,3 +109,5 @@ lib/**/*
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+test.sh

@@ -12,10 +12,10 @@ inputs:
     required: true
     description: Pull Request metadata
 
-  bugzilla-tracker:
-    description: Bugzilla tracker ID
-  jira-tracker:
-    description: Jira tracker ID
+  tracker:
+    description: tracker ID
+  tracker-type:
+    description: tracker type, supported values are 'bugzilla' and 'jira'
 
   product:
     description: Product name

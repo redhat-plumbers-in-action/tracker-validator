@@ -2,7 +2,7 @@ import { debug } from '@actions/core';
 // import { Endpoints } from '@octokit/types';
 // Update check run - check completed + conclusion
 // https://docs.github.com/en/rest/checks/runs?apiVersion=2022-11-28#update-a-check-run
-// ! Allow specifying workflow run when creating a checkrun from a GitHub workflow 
+// ! Allow specifying workflow run when creating a checkrun from a GitHub workflow
 // !FIXME: Issue - https://github.com/orgs/community/discussions/14891#discussioncomment-6110666
 // !FIXME: Issue - https://github.com/orgs/community/discussions/24616
 export async function updateStatusCheck(octokit, checkID, owner, repo, 
