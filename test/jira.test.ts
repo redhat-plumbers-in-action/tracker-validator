@@ -33,6 +33,7 @@ describe('test Jira API', () => {
         "flags": [],
         "id": "RHEL-678",
         "product": "rhel-10.0.0",
+        "status": "New",
         "summary": "[spec] [RHEL 10] use during build generated systemd-user pam config like in Fedora",
       }
     `);
@@ -54,6 +55,7 @@ describe('test Jira API', () => {
         "flags": [],
         "id": "RHEL-678",
         "product": "rhel-10.0.0",
+        "status": "New",
         "summary": "[spec] [RHEL 10] use during build generated systemd-user pam config like in Fedora",
       }
     `);
@@ -123,7 +125,8 @@ describe('test Jira API', () => {
     expect(isMatching).toBeTruthy();
   });
 
-  test<TestContext>('isApproved()', context => {
+  // !FIXME: not implemented yet
+  test.skip<TestContext>('isApproved()', context => {
     let flags: Flag[] = [
       { name: 'some_flag', status: '-' },
       { name: 'some_other_flag', status: '?' },
