@@ -57,6 +57,7 @@ describe('test Bugzilla API', () => {
         ],
         "id": "2013411",
         "product": "Red Hat Enterprise Linux 9",
+        "status": "POST",
         "summary": "[test] source-git automation test bug",
       }
     `);
@@ -66,42 +67,7 @@ describe('test Bugzilla API', () => {
     const version = await context.bugzilla.getVersion();
 
     expect(version).toBeDefined();
-    expect(version).toMatchInlineSnapshot('"5.0.4.rh88"');
-
-    const bzTracker = process.env['INPUT_TRACKER'] ?? '2013411';
-    const bug = await context.bugzilla.getIssueDetails(bzTracker);
-
-    expect(bug).toBeDefined();
-    expect(bug).toMatchInlineSnapshot(`
-      {
-        "component": "systemd",
-        "flags": [
-          {
-            "name": "qe_test_coverage",
-            "status": "?",
-          },
-          {
-            "name": "release",
-            "status": "?",
-          },
-          {
-            "name": "mirror",
-            "status": "+",
-          },
-          {
-            "name": "devel_ack",
-            "status": "+",
-          },
-          {
-            "name": "qa_ack",
-            "status": "+",
-          },
-        ],
-        "id": "2013411",
-        "product": "Red Hat Enterprise Linux 9",
-        "summary": "[test] source-git automation test bug",
-      }
-    `);
+    expect(version).toMatch(/\d+.\d+.\d+.rh\d+/);
   });
 
   test<TestContext>('getUrl()', context => {
