@@ -213,13 +213,6 @@ The tracker type. Currently supported: `bugzilla` and `jira`.
 * default value: `undefined`
 * requirements: `required`
 
-### product
-
-Product name is used for validation if provided tracker is targeting the expected product. For example, for Bugzilla: `product: Red Hat Enterprise Linux 9`. If product is not provided, validation will be skipped.
-
-* default value: `undefined`
-* requirements: `optional`
-
 ### component
 
 Component name is used for validation if provided tracker is targeting the expected component. For example, for Bugzilla: `component: systemd`. If component is not provided, validation will be skipped.
@@ -271,6 +264,13 @@ permissions:
 * recomended value: `secrets.GITHUB_TOKEN`
 
 ## Configuration
+
+### product
+
+Product name is used for validation if provided tracker is targeting the expected product. For example, for Bugzilla: `product: Red Hat Enterprise Linux 9`. If product is not provided, validation will be skipped.
+
+* default value: `undefined`
+* requirements: `optional`
 
 > ...
 

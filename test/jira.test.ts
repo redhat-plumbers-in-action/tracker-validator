@@ -104,7 +104,7 @@ describe('test Jira API', () => {
     };
     context.jira.issueDetails = issue;
 
-    const product = process.env['INPUT_PRODUCT'] ?? '';
+    const product = ['Red Hat Enterprise Linux 9'];
     const isMatching = context.jira.isMatchingProduct(product);
 
     expect(isMatching).toBeTruthy();

@@ -10,7 +10,7 @@ export declare class Bugzilla implements Adapter<BugzillaAPI> {
     getVersion(): Promise<string>;
     getUrl(): string;
     getMarkdownUrl(): string;
-    isMatchingProduct(product: string): boolean;
+    isMatchingProduct(products?: string[]): boolean;
     isMatchingComponent(component: string): boolean;
     isApproved(): boolean;
     changeState(): Promise<string>;

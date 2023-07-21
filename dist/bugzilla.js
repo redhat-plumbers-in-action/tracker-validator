@@ -46,15 +46,15 @@ export class Bugzilla {
         }
         return `[#${this.issueDetails.id}](${this.getUrl()})`;
     }
-    isMatchingProduct(product) {
+    isMatchingProduct(products = []) {
         // product matching is optional
-        if (product === '') {
+        if (products.length === 0) {
             return true;
         }
         if (this.issueDetails === undefined) {
             raise('Bugzilla.isMatchingProduct(): missing issueDetails, call Bugzilla.getIssueDetails() first.');
         }
-        return product === this.issueDetails.product;
+        return products.includes(this.issueDetails.product);
     }
     isMatchingComponent(component) {
         if (this.issueDetails === undefined) {
