@@ -1,10 +1,11 @@
 import { debug, getInput, notice } from '@actions/core';
-import { Octokit } from '@octokit/core';
 import { z } from 'zod';
 
 import { Bugzilla } from './bugzilla';
+import { Config } from './config';
 import { Controller } from './controller';
 import { Jira } from './jira';
+import { CustomOctokit } from './octokit';
 import { PullRequestMetadata } from './schema/input';
 import {
   getFailedMessage,
@@ -15,7 +16,7 @@ import {
 } from './util';
 
 async function action(
-  octokit: Octokit,
+  octokit: CustomOctokit,
   owner: string,
   repo: string,
   prMetadata: PullRequestMetadata
@@ -52,6 +53,7 @@ async function action(
   let message: string[] = [];
   let err: string[] = [];
   let labels: { add: string[]; remove: string[] } = { add: [], remove: [] };
+  const config = await Config.getConfig(octokit);
 
   const labelsFromPR = z
     .array(z.object({ name: z.string() }).transform(label => label.name))
@@ -72,76 +74,89 @@ async function action(
 
   const issueDetails = await trackerController.adapter.getIssueDetails(tracker);
 
-  const product = getInput('product');
-
-  if (!trackerController.adapter.isMatchingProduct(product)) {
-    labels.add.push('bz/invalid-product');
+  const isMatchingProduct = trackerController.adapter.isMatchingProduct(
+    config.products
+  );
+  if (!isMatchingProduct) {
+    labels.add.push(config.labels['invalid-product']);
     err.push(
-      `🔴 Bugzilla tracker ${trackerController.adapter.getMarkdownUrl()} has product \`${
+      `🔴 Tracker ${trackerController.adapter.getMarkdownUrl()} has product \`${
         issueDetails.product
-      }\` but desired product is \`${product}\``
+      }\` but desired product is one of \`${config.products}\``
     );
   } else {
-    if (labelsFromPR.includes('bz/invalid-product')) {
+    if (labelsFromPR.includes(config.labels['invalid-product'])) {
       removeLabel(
         octokit,
         owner,
         repo,
         prMetadata.number,
-        'bz/invalid-product'
+        config.labels['invalid-product']
       );
     }
     message.push(
-      `🟢 Bugzilla tracker ${trackerController.adapter.getMarkdownUrl()} has set desired product: \`${product}\``
+      `🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} has set desired product: \`${
+        issueDetails.product
+      }\``
     );
   }
 
   const component = getInput('component', { required: true });
 
-  if (!trackerController.adapter.isMatchingComponent(component)) {
-    labels.add.push('bz/invalid-component');
+  const isMatchingComponent =
+    trackerController.adapter.isMatchingComponent(component);
+  if (!isMatchingComponent) {
+    labels.add.push(config.labels['invalid-component']);
     err.push(
-      `🔴 Bugzilla tracker ${trackerController.adapter.getMarkdownUrl()} has component \`${
+      `🔴 Tracker ${trackerController.adapter.getMarkdownUrl()} has component \`${
         issueDetails.component
       }\` but desired component is \`${component}\``
     );
   } else {
-    if (labelsFromPR.includes('bz/invalid-component')) {
+    if (labelsFromPR.includes(config.labels['invalid-component'])) {
       removeLabel(
         octokit,
         owner,
         repo,
         prMetadata.number,
-        'bz/invalid-component'
+        config.labels['invalid-component']
       );
     }
     message.push(
-      `🟢 Bugzilla tracker ${trackerController.adapter.getMarkdownUrl()} has set desired component: \`${component}\``
+      `🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} has set desired component: \`${component}\``
     );
   }
 
   if (!trackerController.adapter.isApproved()) {
-    labels.add.push('bz/unapproved');
+    labels.add.push(config.labels.unapproved);
     err.push(
-      `🔴 Bugzilla tracker ${trackerController.adapter.getMarkdownUrl()} has not been approved`
+      `🔴 Tracker ${trackerController.adapter.getMarkdownUrl()} has not been approved`
     );
   } else {
-    if (labelsFromPR.includes('bz/unapproved')) {
-      removeLabel(octokit, owner, repo, prMetadata.number, 'bz/unapproved');
+    if (labelsFromPR.includes(config.labels.unapproved)) {
+      removeLabel(
+        octokit,
+        owner,
+        repo,
+        prMetadata.number,
+        config.labels.unapproved
+      );
     }
     message.push(
-      `🟢 Bugzilla tracker ${trackerController.adapter.getMarkdownUrl()} has been approved`
+      `🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} has been approved`
     );
   }
 
-  const linkMessage = await trackerController.adapter.addLink(
-    'https://github.com/',
-    `${owner}/${repo}/pull/${prMetadata.number}`
-  );
-  notice(`🔗 ${linkMessage}`);
+  if (isMatchingProduct && isMatchingComponent) {
+    const linkMessage = await trackerController.adapter.addLink(
+      'https://github.com/',
+      `${owner}/${repo}/pull/${prMetadata.number}`
+    );
+    notice(`🔗 ${linkMessage}`);
 
-  const stateMessage = await trackerController.adapter.changeState();
-  notice(`🎺 ${stateMessage}`);
+    const stateMessage = await trackerController.adapter.changeState();
+    notice(`🎺 ${stateMessage}`);
+  }
 
   // TODO: Once validated update Tracker status and add/update comment in PR
 

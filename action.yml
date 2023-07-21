@@ -23,8 +23,6 @@ inputs:
     required: true
     description: tracker type, supported values are 'bugzilla' and 'jira'
 
-  product:
-    description: Product name
   component:
     required: true
     description: Component name

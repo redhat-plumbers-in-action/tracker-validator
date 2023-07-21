@@ -1,14 +1,12 @@
 var _a, _b;
 import { getInput, setFailed } from '@actions/core';
+import { z } from 'zod';
 import '@total-typescript/ts-reset';
 import action from './action';
-import { Octokit } from '@octokit/core';
-import { z } from 'zod';
 import { pullRequestMetadataSchema } from './schema/input';
+import { getOctokit } from './octokit';
 import { updateStatusCheck } from './util';
-const octokit = new Octokit({
-    auth: getInput('token', { required: true }),
-});
+const octokit = getOctokit(getInput('token', { required: true }));
 const owner = z
     .string()
     .min(1)

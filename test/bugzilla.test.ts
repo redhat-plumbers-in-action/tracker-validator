@@ -118,7 +118,7 @@ describe('test Bugzilla API', () => {
     };
     context.bugzilla.issueDetails = bug;
 
-    const product = process.env['INPUT_PRODUCT'] ?? '';
+    const product = ['Red Hat Enterprise Linux 9'];
     const isMatching = context.bugzilla.isMatchingProduct(product);
 
     expect(isMatching).toBeTruthy();

@@ -64,9 +64,9 @@ export class Bugzilla implements Adapter<BugzillaAPI> {
     return `[#${this.issueDetails.id}](${this.getUrl()})`;
   }
 
-  isMatchingProduct(product: string): boolean {
+  isMatchingProduct(products: string[] = []): boolean {
     // product matching is optional
-    if (product === '') {
+    if (products.length === 0) {
       return true;
     }
 
@@ -76,7 +76,7 @@ export class Bugzilla implements Adapter<BugzillaAPI> {
       );
     }
 
-    return product === this.issueDetails.product;
+    return products.includes(this.issueDetails.product);
   }
 
   isMatchingComponent(component: string): boolean {

@@ -1,4 +1,4 @@
-import { debug, warning } from '@actions/core';
+import { debug } from '@actions/core';
 import { Version2Client } from 'jira.js';
 
 import { Adapter, IssueDetails } from './controller';
@@ -58,9 +58,9 @@ export class Jira implements Adapter<Version2Client> {
     return `[${this.issueDetails.id}](${this.getUrl()})`;
   }
 
-  isMatchingProduct(product: string): boolean {
+  isMatchingProduct(products: string[] = []): boolean {
     // product matching is optional
-    if (product === '') {
+    if (products.length === 0) {
       return true;
     }
 
@@ -70,7 +70,7 @@ export class Jira implements Adapter<Version2Client> {
       );
     }
 
-    return this.issueDetails.product === product;
+    return products.includes(this.issueDetails.product);
   }
 
   isMatchingComponent(component: string): boolean {
@@ -105,19 +105,25 @@ export class Jira implements Adapter<Version2Client> {
       );
     }
 
-    if (this.issueDetails.status !== 'New') {
+    if (
+      this.issueDetails.status !== 'New' &&
+      this.issueDetails.status !== 'Planning'
+    ) {
       debug(
-        `Jira issue ${this.issueDetails.id} isn't in 'NEW' or 'ASSIGNED' state.`
+        `Jira issue ${this.issueDetails.id} isn't in 'New' or 'Planning' state.`
       );
       return `Jira issue ${this.getMarkdownUrl()} has desired state.`;
     }
 
     debug(`Changing state of Jira ${this.issueDetails.id}.`);
 
-    await this.api.issues.editIssue({
+    // The state can be changed only by a transition
+    // In Progress transition id is 111
+    // to get the transition id, use: https://issues.redhat.com/rest/api/2/issue/<RHEL-XXXX>/transitions
+    await this.api.issues.doTransition({
       issueIdOrKey: this.issueDetails.id,
-      fields: {
-        status: { name: 'In Progress' },
+      transition: {
+        id: '111',
       },
     });
 

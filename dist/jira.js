@@ -41,15 +41,15 @@ export class Jira {
         }
         return `[${this.issueDetails.id}](${this.getUrl()})`;
     }
-    isMatchingProduct(product) {
+    isMatchingProduct(products = []) {
         // product matching is optional
-        if (product === '') {
+        if (products.length === 0) {
             return true;
         }
         if (this.issueDetails === undefined) {
             raise('Jira.isMatchingProduct(): missing issueDetails, call Jira.getIssueDetails() first.');
         }
-        return this.issueDetails.product === product;
+        return products.includes(this.issueDetails.product);
     }
     isMatchingComponent(component) {
         if (this.issueDetails === undefined) {
@@ -71,15 +71,19 @@ export class Jira {
         if (this.issueDetails === undefined) {
             raise('Jira.changeState(): missing issueDetails, call Jira.getIssueDetails() first.');
         }
-        if (this.issueDetails.status !== 'New') {
-            debug(`Jira issue ${this.issueDetails.id} isn't in 'NEW' or 'ASSIGNED' state.`);
+        if (this.issueDetails.status !== 'New' &&
+            this.issueDetails.status !== 'Planning') {
+            debug(`Jira issue ${this.issueDetails.id} isn't in 'New' or 'Planning' state.`);
             return `Jira issue ${this.getMarkdownUrl()} has desired state.`;
         }
         debug(`Changing state of Jira ${this.issueDetails.id}.`);
-        await this.api.issues.editIssue({
+        // The state can be changed only by a transition
+        // In Progress transition id is 111
+        // to get the transition id, use: https://issues.redhat.com/rest/api/2/issue/<RHEL-XXXX>/transitions
+        await this.api.issues.doTransition({
             issueIdOrKey: this.issueDetails.id,
-            fields: {
-                status: { name: 'In Progress' },
+            transition: {
+                id: '111',
             },
         });
         return `Jira issue ${this.getMarkdownUrl()} has changed state to 'In Progress'`;
