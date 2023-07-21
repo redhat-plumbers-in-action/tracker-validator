@@ -11,10 +11,16 @@ inputs:
   pr-metadata:
     required: true
     description: Pull Request metadata
+  config-path:
+    required: true
+    default: .github/tracker-validator.yml
+    description: Path to configuration file
 
   tracker:
+    required: true
     description: tracker ID
   tracker-type:
+    required: true
     description: tracker type, supported values are 'bugzilla' and 'jira'
 
   product:

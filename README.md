@@ -168,19 +168,109 @@ Action currently accepts the following options:
 
 - uses: redhat-plumbers-in-action/tracker-validator@v1
   with:
-    milliseconds: <number>
+    pr-metadata:        <pr-metadata.json>
+    config-path:        <path to config file>
+    tracker:            <tracker ID>
+    tracker-type:       <tracker type>
+    product:            <product name>
+    component:          <component name>
+    bugzilla-instance:  <Bugzilla instance URL>
+    bugzilla-api-token: <Bugzilla API token>
+    jira-instance:      <Jira instance URL>
+    jiira-api-token:    <Jira API token>
+    token:              <GitHub token or PAT>
 
 # ...
 ```
 
-### milliseconds
+### pr-metadata
 
-> ...
+Stringified JSON Pull Request metadata provided by GitHub Action [`redhat-plumbers-in-action/gather-pull-request-metadata`](https://github.com/redhat-plumbers-in-action/gather-pull-request-metadata).
 
-> * default value: `undefined`
-> * requirements: `required`
+Pull Request metadata has the following format: [metadata format](https://github.com/redhat-plumbers-in-action/gather-pull-request-metadata#metadata)
 
-## Policy
+* default value: `undefined`
+* requirements: `required`
+
+### config-path
+
+Path to configuration file. Configuration file format is described in: [Configuration section](#Configuration).
+
+* default value: `.github/tracker-validator.yml`
+* requirements: `optional`
+
+### tracker
+
+The tracker identificator. For example, for Bugzilla: `tracker: 1234567`.
+
+* default value: `undefined`
+* requirements: `required`
+
+### tracker-type
+
+The tracker type. Currently supported: `bugzilla` and `jira`.
+
+* default value: `undefined`
+* requirements: `required`
+
+### product
+
+Product name is used for validation if provided tracker is targeting the expected product. For example, for Bugzilla: `product: Red Hat Enterprise Linux 9`. If product is not provided, validation will be skipped.
+
+* default value: `undefined`
+* requirements: `optional`
+
+### component
+
+Component name is used for validation if provided tracker is targeting the expected component. For example, for Bugzilla: `component: systemd`. If component is not provided, validation will be skipped.
+
+* default value: `undefined`
+* requirements: `optional`
+
+### bugzilla-instance
+
+The URL of the Bugzilla instance on which will be performed API requests and validation of trackers. For example: `bugzilla-instance: https://bugzilla.redhat.com`.
+
+* default value: `undefined`
+* requirements: `optional`
+
+### bugzilla-api-token
+
+The Bugzilla API token is used for performing API requests. The token should be stored as GitHub secret. Never paste the token directly into the workflow file.
+
+* default value: `undefined`
+* requirements: `optional`
+
+### jira-instance
+
+The URL of the Jira instance on which will be performed API requests and validation of trackers. For example: `jira-instance: https://issues.redhat.com`.
+
+* default value: `undefined`
+* requirements: `required`
+
+### jiira-api-token
+
+The Jira API token is used for performing API requests. The token should be stored as GitHub secret. Never paste the token directly into the workflow file.
+
+* default value: `undefined`
+* requirements: `optional`
+
+### token
+
+GitHub token or PAT is used for creating comments on Pull Request and setting checks.
+
+```yml
+# required permission
+permissions:
+  checks: write
+  pull-requests: write
+```
+
+* default value: `undefined`
+* requirements: `required`
+* recomended value: `secrets.GITHUB_TOKEN`
+
+## Configuration
 
 > ...
 
