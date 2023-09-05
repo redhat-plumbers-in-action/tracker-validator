@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Repository checkout
-        uses: actions/checkout@96f53100ba2a5449eb71d2e6604bbcd94b9449b5
+        uses: actions/checkout@72f2cec99f417b1a1c5e2e88945068983b7965f9
 
       - name: Update tag
         uses: Actions-R-Us/actions-tagger@v2
