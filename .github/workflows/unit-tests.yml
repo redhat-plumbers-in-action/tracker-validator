@@ -41,6 +41,13 @@ jobs:
         run: yarn run package
 
       - name: Test
+        env:
+          INPUT_PRODUCT: "Red Hat Enterprise Linux 9"
+          INPUT_COMPONENT: "systemd"
+          INPUT_BUGZILLA-INSTANCE: "https://bugzilla.stage.redhat.com"
+          INPUT_BUGZILLA-API-TOKEN: ${{ secrets.BUGZILLA_API_TOKEN }}
+          INPUT_JIRA-INSTANCE: "https://issues.redhat.com"
+          INPUT_JIRA-API-TOKEN: ${{ secrets.JIRA_API_TOKEN }}
         run: yarn test
 
       - name: Codecov

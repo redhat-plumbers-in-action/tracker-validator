@@ -25,7 +25,10 @@ export type IssueDetails = {
   product: string;
   component: string;
   summary: string;
-  flags: Flag[];
+  // Flags are Bugzilla specific
+  flags?: Flag[];
+  // FixVersions are Jira specific
+  fixVersions?: string[];
   status: string;
 };
 

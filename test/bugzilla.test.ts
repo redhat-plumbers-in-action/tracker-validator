@@ -25,15 +25,21 @@ describe('test Bugzilla API', () => {
     );
   });
 
-  test<TestContext>('getIssueDetails()', async context => {
-    const bzTracker = process.env['INPUT_TRACKER'] ?? '2013411';
-    const bug = await context.bugzilla.getIssueDetails(bzTracker);
+  test.skipIf(!process.env['INPUT_BUGZILLA-API-TOKEN'])<TestContext>(
+    'getIssueDetails()',
+    async context => {
+      const bzTracker = '2013411';
+      const bug = await context.bugzilla.getIssueDetails(bzTracker);
 
-    expect(bug).toBeDefined();
-    expect(bug).toMatchInlineSnapshot(`
+      expect(bug).toBeDefined();
+      expect(bug).toMatchInlineSnapshot(`
       {
         "component": "systemd",
         "flags": [
+          {
+            "name": "needinfo",
+            "status": "?",
+          },
           {
             "name": "qe_test_coverage",
             "status": "?",
@@ -61,7 +67,8 @@ describe('test Bugzilla API', () => {
         "summary": "[test] source-git automation test bug",
       }
     `);
-  });
+    }
+  );
 
   test<TestContext>('getVersion()', async context => {
     const version = await context.bugzilla.getVersion();
