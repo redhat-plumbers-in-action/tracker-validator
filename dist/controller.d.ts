@@ -20,7 +20,8 @@ export type IssueDetails = {
     product: string;
     component: string;
     summary: string;
-    flags: Flag[];
+    flags?: Flag[];
+    fixVersions?: string[];
     status: string;
 };
 export type Flag = {

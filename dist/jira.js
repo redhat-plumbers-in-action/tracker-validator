@@ -19,8 +19,7 @@ export class Jira {
             product: (_b = (_a = response.fields.versions[0]) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : '',
             component: (_c = response.fields.components[0].name) !== null && _c !== void 0 ? _c : '',
             summary: response.fields.summary,
-            // TODO: not implemented yet
-            flags: [],
+            fixVersions: response.fields.fixVersions.map(version => version.name),
             status: (_d = response.fields.status.name) !== null && _d !== void 0 ? _d : '',
         };
         return this.issueDetails;
@@ -62,21 +61,16 @@ export class Jira {
         if (this.issueDetails === undefined) {
             raise('Jira.isApproved(): missing issueDetails, call Jira.getIssueDetails() first.');
         }
-        // TODO: not implemented yet
-        return true;
-        // if (!this.issueDetails.flags) {
-        //   return false;
-        // }
-        // const approved = this.issueDetails.flags.find(
-        //   flag => flag.name === 'release' && flag.status === '+'
-        // );
-        // return approved !== undefined;
+        // Jira is approved if it has set Fix Version/s
+        if (this.issueDetails.fixVersions !== undefined) {
+            return this.issueDetails.fixVersions.length > 0;
+        }
+        return false;
     }
     async changeState() {
         if (this.issueDetails === undefined) {
             raise('Jira.changeState(): missing issueDetails, call Jira.getIssueDetails() first.');
         }
-        // TODO: not implemented yet
         if (this.issueDetails.status !== 'New') {
             debug(`Jira issue ${this.issueDetails.id} isn't in 'NEW' or 'ASSIGNED' state.`);
             return `Jira issue ${this.getMarkdownUrl()} has desired state.`;

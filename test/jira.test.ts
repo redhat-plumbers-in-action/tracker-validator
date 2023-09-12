@@ -8,6 +8,8 @@ interface TestContext {
   jira: Jira;
 }
 
+const rhel10IssueID = 'RHEL-678';
+
 describe('test Jira API', () => {
   beforeEach<TestContext>(context => {
     const jiraToken = process.env['INPUT_JIRA-API-TOKEN'] ?? '';
@@ -23,14 +25,14 @@ describe('test Jira API', () => {
   });
 
   test<TestContext>('getIssueDetails()', async context => {
-    const issueId = process.env['INPUT_TRACKER'] ?? 'RHEL-678';
-    const issue = await context.jira.getIssueDetails(issueId);
+    let issueId = rhel10IssueID;
+    let issue = await context.jira.getIssueDetails(issueId);
 
     expect(issue).toBeDefined();
     expect(issue).toMatchInlineSnapshot(`
       {
         "component": "systemd",
-        "flags": [],
+        "fixVersions": [],
         "id": "RHEL-678",
         "product": "rhel-10.0.0",
         "status": "New",
@@ -45,14 +47,14 @@ describe('test Jira API', () => {
     expect(version).toBeDefined();
     expect(version).toMatchInlineSnapshot('"9.4.2"');
 
-    const issueId = process.env['INPUT_TRACKER'] ?? 'RHEL-678';
+    const issueId = rhel10IssueID;
     const issue = await context.jira.getIssueDetails(issueId);
 
     expect(issue).toBeDefined();
     expect(issue).toMatchInlineSnapshot(`
       {
         "component": "systemd",
-        "flags": [],
+        "fixVersions": [],
         "id": "RHEL-678",
         "product": "rhel-10.0.0",
         "status": "New",
@@ -64,7 +66,7 @@ describe('test Jira API', () => {
   test<TestContext>('getUrl()', context => {
     context.jira.issueDetails = {
       component: 'systemd',
-      flags: [],
+      fixVersions: [],
       id: '123456789',
       product: 'Red Hat Enterprise Linux 9',
       summary: 'RHEL 9 bug',
@@ -79,7 +81,7 @@ describe('test Jira API', () => {
   test<TestContext>('getMarkdownUrl()', context => {
     context.jira.issueDetails = {
       component: 'systemd',
-      flags: [],
+      fixVersions: [],
       id: '123456789',
       product: 'Red Hat Enterprise Linux 9',
       summary: 'RHEL 9 bug',
@@ -94,7 +96,7 @@ describe('test Jira API', () => {
   test<TestContext>('isMatchingProduct()', context => {
     const issue: IssueDetails = {
       component: 'systemd',
-      flags: [],
+      fixVersions: [],
       id: '123456789',
       product: 'Red Hat Enterprise Linux 9',
       summary: 'RHEL 9 bug',
@@ -111,7 +113,7 @@ describe('test Jira API', () => {
   test<TestContext>('isMatchingComponent()', context => {
     const issue: IssueDetails = {
       component: 'systemd',
-      flags: [],
+      fixVersions: [],
       id: '123456789',
       product: 'Fedora',
       summary: 'Fedora Bug',

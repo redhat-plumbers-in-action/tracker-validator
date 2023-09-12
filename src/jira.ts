@@ -26,8 +26,7 @@ export class Jira implements Adapter<Version2Client> {
       product: response.fields.versions[0]?.name ?? '',
       component: response.fields.components[0].name ?? '',
       summary: response.fields.summary,
-      // TODO: not implemented yet
-      flags: [],
+      fixVersions: response.fields.fixVersions.map(version => version.name),
       status: response.fields.status.name ?? '',
     };
 
@@ -91,17 +90,12 @@ export class Jira implements Adapter<Version2Client> {
       );
     }
 
-    // TODO: not implemented yet
-    return true;
+    // Jira is approved if it has set Fix Version/s
+    if (this.issueDetails.fixVersions !== undefined) {
+      return this.issueDetails.fixVersions.length > 0;
+    }
 
-    // if (!this.issueDetails.flags) {
-    //   return false;
-    // }
-
-    // const approved = this.issueDetails.flags.find(
-    //   flag => flag.name === 'release' && flag.status === '+'
-    // );
-    // return approved !== undefined;
+    return false;
   }
 
   async changeState(): Promise<string> {
@@ -111,7 +105,6 @@ export class Jira implements Adapter<Version2Client> {
       );
     }
 
-    // TODO: not implemented yet
     if (this.issueDetails.status !== 'New') {
       debug(
         `Jira issue ${this.issueDetails.id} isn't in 'NEW' or 'ASSIGNED' state.`
