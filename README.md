@@ -25,8 +25,8 @@
 [check-dist]: https://github.com/redhat-plumbers-in-action/tracker-validator/actions/workflows/check-dist.yml
 [check-dist-status]: https://github.com/redhat-plumbers-in-action/tracker-validator/actions/workflows/check-dist.yml/badge.svg
 
-[codecov]: https://codecov.io/gh/redhat-plumbers-in-action/tracker-validator
-[codecov-status]: https://codecov.io/gh/redhat-plumbers-in-action/tracker-validator/branch/main/graph/badge.svg
+[codecov]: https://codecov.io/github/redhat-plumbers-in-action/tracker-validator
+[codecov-status]: https://codecov.io/github/redhat-plumbers-in-action/tracker-validator/graph/badge.svg?token=LKx67sWeC6
 
 [mergify]: https://mergify.com
 [mergify-status]: https://img.shields.io/endpoint.svg?url=https://api.mergify.com/v1/badges/redhat-plumbers-in-action/tracker-validator&style=flat
