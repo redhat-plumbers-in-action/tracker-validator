@@ -79,13 +79,23 @@ async function action(
 
   try {
     issueDetails = await trackerController.adapter.getIssueDetails(tracker);
+
+    if (labelsFromPR.includes(config.labels['missing-tracker'])) {
+      removeLabel(
+        octokit,
+        owner,
+        repo,
+        prMetadata.number,
+        config.labels['missing-tracker']
+      );
+    }
   } catch (e) {
     setLabels(octokit, owner, repo, prMetadata.number, [
       config.labels['missing-tracker'],
     ]);
 
     raise(
-      `Tracker ${trackerController.adapter.getMarkdownUrl()} does not exist`
+      `Tracker '${tracker}' does not exist on ${trackerController.adapter.instance}`
     );
   }
 

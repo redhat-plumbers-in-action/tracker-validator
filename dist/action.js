@@ -42,12 +42,15 @@ async function action(octokit, owner, repo, prMetadata) {
     let issueDetails;
     try {
         issueDetails = await trackerController.adapter.getIssueDetails(tracker);
+        if (labelsFromPR.includes(config.labels['missing-tracker'])) {
+            removeLabel(octokit, owner, repo, prMetadata.number, config.labels['missing-tracker']);
+        }
     }
     catch (e) {
         setLabels(octokit, owner, repo, prMetadata.number, [
             config.labels['missing-tracker'],
         ]);
-        raise(`Tracker ${trackerController.adapter.getMarkdownUrl()} does not exist`);
+        raise(`Tracker '${tracker}' does not exist on ${trackerController.adapter.instance}`);
     }
     const isMatchingProduct = trackerController.adapter.isMatchingProduct(config.products);
     if (!isMatchingProduct) {
