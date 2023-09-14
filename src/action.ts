@@ -22,6 +22,7 @@ async function action(
   prMetadata: PullRequestMetadata
 ): Promise<string> {
   const trackerType = getInput('tracker-type', { required: true });
+  const config = await Config.getConfig(octokit);
 
   let trackerController: Controller<Bugzilla | Jira>;
 
@@ -47,13 +48,15 @@ async function action(
       break;
 
     default:
-      raise(`Unknown tracker type: '${trackerType}'`);
+      setLabels(octokit, owner, repo, prMetadata.number, [
+        config.labels['missing-tracker'],
+      ]);
+      raise(`Missing tracker or Unknown tracker type: '${trackerType}'`);
   }
 
   let message: string[] = [];
   let err: string[] = [];
   let labels: { add: string[]; remove: string[] } = { add: [], remove: [] };
-  const config = await Config.getConfig(octokit);
 
   const labelsFromPR = z
     .array(z.object({ name: z.string() }).transform(label => label.name))
