@@ -60,4 +60,35 @@ export async function removeLabel(octokit, owner, repo, issueNumber, label) {
 export function raise(error) {
     throw new Error(error);
 }
+export async function getTitle(octokit, owner, repo, issueNumber) {
+    return (await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+        owner,
+        repo,
+        pull_number: issueNumber,
+    })).data.title;
+}
+export function isTrackerInTitle(title, tracker) {
+    const regexp = new RegExp(`^\\(${tracker}\\) .*\\b$`, 'm');
+    return regexp.test(title);
+}
+// Get current title without any old tracker references
+export function getCurrentTitle(title) {
+    const onlyTitle = /^(\(\S+\)) (.*\b)$/m;
+    const match = title.match(onlyTitle);
+    return match ? match[2] : title;
+}
+export async function setTitle(octokit, owner, repo, issueNumber, tracker) {
+    const currentTitle = await getTitle(octokit, owner, repo, issueNumber);
+    if (isTrackerInTitle(currentTitle, tracker)) {
+        return `Title already contains tracker ${tracker}`;
+    }
+    const newTitle = `(${tracker}) ${getCurrentTitle(currentTitle)}`;
+    await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
+        owner,
+        repo,
+        issue_number: issueNumber,
+        title: newTitle,
+    });
+    return `Set title to '${newTitle}'`;
+}
 //# sourceMappingURL=util.js.map

@@ -13,6 +13,7 @@ import {
   raise,
   removeLabel,
   setLabels,
+  setTitle,
 } from './util';
 
 async function action(
@@ -98,6 +99,15 @@ async function action(
       `Tracker '${tracker}' does not exist on ${trackerController.adapter.instance}`
     );
   }
+
+  const titleResult = await setTitle(
+    octokit,
+    owner,
+    repo,
+    prMetadata.number,
+    tracker
+  );
+  notice(`🔤 ${titleResult}`);
 
   const isMatchingProduct = trackerController.adapter.isMatchingProduct(
     config.products
