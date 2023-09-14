@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { Bugzilla } from './bugzilla';
 import { Config } from './config';
-import { Controller } from './controller';
+import { Controller, IssueDetails } from './controller';
 import { Jira } from './jira';
 import { CustomOctokit } from './octokit';
 import { PullRequestMetadata } from './schema/input';
@@ -75,7 +75,19 @@ async function action(
 
   const tracker = getInput('tracker', { required: true });
 
-  const issueDetails = await trackerController.adapter.getIssueDetails(tracker);
+  let issueDetails: IssueDetails;
+
+  try {
+    issueDetails = await trackerController.adapter.getIssueDetails(tracker);
+  } catch (e) {
+    setLabels(octokit, owner, repo, prMetadata.number, [
+      config.labels['missing-tracker'],
+    ]);
+
+    raise(
+      `Tracker ${trackerController.adapter.getMarkdownUrl()} does not exist`
+    );
+  }
 
   const isMatchingProduct = trackerController.adapter.isMatchingProduct(
     config.products

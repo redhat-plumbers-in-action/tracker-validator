@@ -7,6 +7,7 @@ import { Jira } from './jira';
 import { getFailedMessage, getSuccessMessage, raise, removeLabel, setLabels, } from './util';
 async function action(octokit, owner, repo, prMetadata) {
     const trackerType = getInput('tracker-type', { required: true });
+    const config = await Config.getConfig(octokit);
     let trackerController;
     switch (trackerType) {
         case 'bugzilla':
@@ -22,12 +23,14 @@ async function action(octokit, owner, repo, prMetadata) {
             debug(`Using Jira '${jiraInstance}', version: '${await trackerController.adapter.getVersion()}'`);
             break;
         default:
-            raise(`Unknown tracker type: '${trackerType}'`);
+            setLabels(octokit, owner, repo, prMetadata.number, [
+                config.labels['missing-tracker'],
+            ]);
+            raise(`Missing tracker or Unknown tracker type: '${trackerType}'`);
     }
     let message = [];
     let err = [];
     let labels = { add: [], remove: [] };
-    const config = await Config.getConfig(octokit);
     const labelsFromPR = z
         .array(z.object({ name: z.string() }).transform(label => label.name))
         .parse((await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}/labels', {
@@ -36,7 +39,16 @@ async function action(octokit, owner, repo, prMetadata) {
         issue_number: prMetadata.number,
     })).data);
     const tracker = getInput('tracker', { required: true });
-    const issueDetails = await trackerController.adapter.getIssueDetails(tracker);
+    let issueDetails;
+    try {
+        issueDetails = await trackerController.adapter.getIssueDetails(tracker);
+    }
+    catch (e) {
+        setLabels(octokit, owner, repo, prMetadata.number, [
+            config.labels['missing-tracker'],
+        ]);
+        raise(`Tracker ${trackerController.adapter.getMarkdownUrl()} does not exist`);
+    }
     const isMatchingProduct = trackerController.adapter.isMatchingProduct(config.products);
     if (!isMatchingProduct) {
         labels.add.push(config.labels['invalid-product']);

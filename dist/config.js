@@ -22,6 +22,7 @@ export class Config {
 }
 Config.defaults = {
     labels: {
+        'missing-tracker': 'tracker/missing',
         'invalid-product': 'tracker/invalid-product',
         'invalid-component': 'tracker/invalid-component',
         unapproved: 'tracker/unapproved',

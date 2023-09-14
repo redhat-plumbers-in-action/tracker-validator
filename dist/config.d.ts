@@ -3,6 +3,7 @@ import { ConfigLabels, ConfigProducts } from './schema/config';
 export declare class Config {
     static readonly defaults: {
         labels: {
+            'missing-tracker': string;
             'invalid-product': string;
             'invalid-component': string;
             unapproved: string;

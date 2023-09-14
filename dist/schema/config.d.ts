@@ -1,13 +1,16 @@
 import { z } from 'zod';
 export declare const configLabelsSchema: z.ZodObject<{
+    'missing-tracker': z.ZodString;
     'invalid-product': z.ZodString;
     'invalid-component': z.ZodString;
     unapproved: z.ZodString;
 }, "strip", z.ZodTypeAny, {
+    'missing-tracker': string;
     'invalid-product': string;
     'invalid-component': string;
     unapproved: string;
 }, {
+    'missing-tracker': string;
     'invalid-product': string;
     'invalid-component': string;
     unapproved: string;
@@ -18,20 +21,24 @@ export type ConfigProducts = z.infer<typeof configProductsSchema>;
 export declare const configSchema: z.ZodObject<{
     products: z.ZodArray<z.ZodString, "many">;
     labels: z.ZodObject<{
+        'missing-tracker': z.ZodString;
         'invalid-product': z.ZodString;
         'invalid-component': z.ZodString;
         unapproved: z.ZodString;
     }, "strip", z.ZodTypeAny, {
+        'missing-tracker': string;
         'invalid-product': string;
         'invalid-component': string;
         unapproved: string;
     }, {
+        'missing-tracker': string;
         'invalid-product': string;
         'invalid-component': string;
         unapproved: string;
     }>;
 }, "strip", z.ZodTypeAny, {
     labels: {
+        'missing-tracker': string;
         'invalid-product': string;
         'invalid-component': string;
         unapproved: string;
@@ -39,6 +46,7 @@ export declare const configSchema: z.ZodObject<{
     products: string[];
 }, {
     labels: {
+        'missing-tracker': string;
         'invalid-product': string;
         'invalid-component': string;
         unapproved: string;
