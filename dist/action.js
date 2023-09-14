@@ -4,7 +4,7 @@ import { Bugzilla } from './bugzilla';
 import { Config } from './config';
 import { Controller } from './controller';
 import { Jira } from './jira';
-import { getFailedMessage, getSuccessMessage, raise, removeLabel, setLabels, } from './util';
+import { getFailedMessage, getSuccessMessage, raise, removeLabel, setLabels, setTitle, } from './util';
 async function action(octokit, owner, repo, prMetadata) {
     const trackerType = getInput('tracker-type', { required: true });
     const config = await Config.getConfig(octokit);
@@ -52,6 +52,8 @@ async function action(octokit, owner, repo, prMetadata) {
         ]);
         raise(`Tracker '${tracker}' does not exist on ${trackerController.adapter.instance}`);
     }
+    const titleResult = await setTitle(octokit, owner, repo, prMetadata.number, tracker);
+    notice(`🔤 ${titleResult}`);
     const isMatchingProduct = trackerController.adapter.isMatchingProduct(config.products);
     if (!isMatchingProduct) {
         labels.add.push(config.labels['invalid-product']);
