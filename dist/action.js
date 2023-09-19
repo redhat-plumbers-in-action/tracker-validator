@@ -53,7 +53,7 @@ async function action(octokit, owner, repo, prMetadata) {
         error(`getIssueDetails(${tracker}): ${e}`);
         raise(`Tracker '${tracker}' does not exist on ${trackerController.adapter.instance}`);
     }
-    const titleResult = await setTitle(octokit, owner, repo, prMetadata.number, tracker);
+    const titleResult = await setTitle(octokit, owner, repo, prMetadata.number, tracker, trackerType);
     notice(`🔤 ${titleResult}`);
     const isMatchingProduct = trackerController.adapter.isMatchingProduct(config.products);
     if (!isMatchingProduct) {
