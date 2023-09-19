@@ -1,4 +1,4 @@
-import { debug, getInput, notice } from '@actions/core';
+import { debug, error, getInput, notice } from '@actions/core';
 import { z } from 'zod';
 import { Bugzilla } from './bugzilla';
 import { Config } from './config';
@@ -50,6 +50,7 @@ async function action(octokit, owner, repo, prMetadata) {
         setLabels(octokit, owner, repo, prMetadata.number, [
             config.labels['missing-tracker'],
         ]);
+        error(`getIssueDetails(${tracker}): ${e}`);
         raise(`Tracker '${tracker}' does not exist on ${trackerController.adapter.instance}`);
     }
     const titleResult = await setTitle(octokit, owner, repo, prMetadata.number, tracker);
