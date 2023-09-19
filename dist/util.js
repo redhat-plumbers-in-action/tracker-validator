@@ -68,12 +68,12 @@ export async function getTitle(octokit, owner, repo, issueNumber) {
     })).data.title;
 }
 export function isTrackerInTitle(title, tracker) {
-    const regexp = new RegExp(`^\\(${tracker}\\) .*\\b$`, 'm');
+    const regexp = new RegExp(`^\\(${tracker}\\) .*$`, 'm');
     return regexp.test(title);
 }
 // Get current title without any old tracker references
 export function getCurrentTitle(title) {
-    const onlyTitle = /^(\(\S+\)) (.*\b)$/m;
+    const onlyTitle = /^(\(\S+\)) (.*)$/m;
     const match = title.match(onlyTitle);
     return match ? match[2] : title;
 }
