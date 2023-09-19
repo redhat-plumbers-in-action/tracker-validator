@@ -80,7 +80,7 @@ export function getCurrentTitle(title) {
 export async function setTitle(octokit, owner, repo, issueNumber, tracker, trackerType) {
     const currentTitle = await getTitle(octokit, owner, repo, issueNumber);
     const hash = trackerType === 'bugzilla' ? '#' : '';
-    if (isTrackerInTitle(`${hash}${currentTitle}`, tracker)) {
+    if (isTrackerInTitle(currentTitle, `${hash}${tracker}`)) {
         return `Title already contains tracker ${tracker}`;
     }
     const newTitle = `(${hash}${tracker}) ${getCurrentTitle(currentTitle)}`;
