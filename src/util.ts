@@ -123,13 +123,13 @@ export async function getTitle(
 }
 
 export function isTrackerInTitle(title: string, tracker: string): boolean {
-  const regexp = new RegExp(`^\\(${tracker}\\) .*\\b$`, 'm');
+  const regexp = new RegExp(`^\\(${tracker}\\) .*$`, 'm');
   return regexp.test(title);
 }
 
 // Get current title without any old tracker references
 export function getCurrentTitle(title: string): string {
-  const onlyTitle = /^(\(\S+\)) (.*\b)$/m;
+  const onlyTitle = /^(\(\S+\)) (.*)$/m;
 
   const match = title.match(onlyTitle);
   return match ? match[2] : title;
