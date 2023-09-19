@@ -1,4 +1,4 @@
-import { debug, getInput, notice } from '@actions/core';
+import { debug, error, getInput, notice } from '@actions/core';
 import { z } from 'zod';
 
 import { Bugzilla } from './bugzilla';
@@ -95,6 +95,7 @@ async function action(
       config.labels['missing-tracker'],
     ]);
 
+    error(`getIssueDetails(${tracker}): ${e}`);
     raise(
       `Tracker '${tracker}' does not exist on ${trackerController.adapter.instance}`
     );
