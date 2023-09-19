@@ -140,7 +140,8 @@ export async function setTitle(
   owner: string,
   repo: string,
   issueNumber: number,
-  tracker: string
+  tracker: string,
+  trackerType: 'bugzilla' | 'jira'
 ): Promise<string> {
   const currentTitle = await getTitle(octokit, owner, repo, issueNumber);
 
@@ -148,7 +149,8 @@ export async function setTitle(
     return `Title already contains tracker ${tracker}`;
   }
 
-  const newTitle = `(${tracker}) ${getCurrentTitle(currentTitle)}`;
+  const hash = trackerType === 'bugzilla' ? '#' : '';
+  const newTitle = `(${hash}${tracker}) ${getCurrentTitle(currentTitle)}`;
 
   await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
     owner,

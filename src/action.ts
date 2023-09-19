@@ -106,7 +106,8 @@ async function action(
     owner,
     repo,
     prMetadata.number,
-    tracker
+    tracker,
+    trackerType
   );
   notice(`🔤 ${titleResult}`);
 

@@ -77,12 +77,13 @@ export function getCurrentTitle(title) {
     const match = title.match(onlyTitle);
     return match ? match[2] : title;
 }
-export async function setTitle(octokit, owner, repo, issueNumber, tracker) {
+export async function setTitle(octokit, owner, repo, issueNumber, tracker, trackerType) {
     const currentTitle = await getTitle(octokit, owner, repo, issueNumber);
     if (isTrackerInTitle(currentTitle, tracker)) {
         return `Title already contains tracker ${tracker}`;
     }
-    const newTitle = `(${tracker}) ${getCurrentTitle(currentTitle)}`;
+    const hash = trackerType === 'bugzilla' ? '#' : '';
+    const newTitle = `(${hash}${tracker}) ${getCurrentTitle(currentTitle)}`;
     await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
         owner,
         repo,

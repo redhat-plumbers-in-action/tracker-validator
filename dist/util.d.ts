@@ -8,4 +8,4 @@ export declare function raise(error: string): never;
 export declare function getTitle(octokit: Octokit, owner: string, repo: string, issueNumber: number): Promise<string>;
 export declare function isTrackerInTitle(title: string, tracker: string): boolean;
 export declare function getCurrentTitle(title: string): string;
-export declare function setTitle(octokit: Octokit, owner: string, repo: string, issueNumber: number, tracker: string): Promise<string>;
+export declare function setTitle(octokit: Octokit, owner: string, repo: string, issueNumber: number, tracker: string, trackerType: 'bugzilla' | 'jira'): Promise<string>;
