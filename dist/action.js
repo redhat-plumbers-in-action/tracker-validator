@@ -64,6 +64,12 @@ async function action(octokit, owner, repo, prMetadata) {
         if (labelsFromPR.includes(config.labels['invalid-product'])) {
             removeLabel(octokit, owner, repo, prMetadata.number, config.labels['invalid-product']);
         }
+        // Set base branch as label if it is not main or master (rhel-9.0.0, rhel-8.5.0, rhel-7.9, etc.)
+        if (prMetadata.base != 'main' &&
+            prMetadata.base != 'master' &&
+            !labelsFromPR.includes(prMetadata.base)) {
+            labels.add.push(prMetadata.base);
+        }
         message.push(`🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} has set desired product: \`${issueDetails.product}\``);
     }
     const component = getInput('component', { required: true });
