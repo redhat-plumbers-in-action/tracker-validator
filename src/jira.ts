@@ -9,7 +9,10 @@ export class Jira implements Adapter<Version2Client> {
   readonly api: Version2Client;
   issueDetails: IssueDetails | undefined;
 
-  constructor(readonly instance: string, apiToken: string) {
+  constructor(
+    readonly instance: string,
+    apiToken: string
+  ) {
     this.api = new Version2Client({
       host: instance,
       authentication: {
