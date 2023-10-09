@@ -44,7 +44,7 @@
     "@types/node": "^20.2.5",
     "@typescript-eslint/eslint-plugin": "^5.59.8",
     "@typescript-eslint/parser": "^5.59.8",
-    "@vercel/ncc": "^0.36.1",
+    "@vercel/ncc": "^0.38.0",
     "@vitest/coverage-v8": "^0.34.6",
     "eslint": "^8.41.0",
     "eslint-plugin-prettier": "^4.2.1",
