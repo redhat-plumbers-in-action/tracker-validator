@@ -6,7 +6,7 @@
 
 [![GitHub Marketplace][market-status]][market] [![Lint Code Base][linter-status]][linter] [![Unit Tests][test-status]][test] [![CodeQL][codeql-status]][codeql] [![Check dist/][check-dist-status]][check-dist]
 
-[![codecov][codecov-status]][codecov] [![Mergify Status][mergify-status]][mergify]
+[![codecov][codecov-status]][codecov]
 
 <!-- Status links -->
 
@@ -27,9 +27,6 @@
 
 [codecov]: https://codecov.io/github/redhat-plumbers-in-action/tracker-validator
 [codecov-status]: https://codecov.io/github/redhat-plumbers-in-action/tracker-validator/graph/badge.svg?token=LKx67sWeC6
-
-[mergify]: https://mergify.com
-[mergify-status]: https://img.shields.io/endpoint.svg?url=https://api.mergify.com/v1/badges/redhat-plumbers-in-action/tracker-validator&style=flat
 
 <!-- -->
 
