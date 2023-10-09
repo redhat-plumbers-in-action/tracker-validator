@@ -39,7 +39,7 @@ export async function updateStatusCheck(
       completed_at: new Date().toISOString(),
       conclusion,
       output: {
-        title: 'Tracker Validation',
+        title: 'Tracker Validator',
         summary: message,
       },
     }
