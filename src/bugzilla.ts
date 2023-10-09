@@ -9,7 +9,10 @@ export class Bugzilla implements Adapter<BugzillaAPI> {
   readonly api: BugzillaAPI;
   issueDetails: IssueDetails | undefined;
 
-  constructor(readonly instance: string, private apiToken: string) {
+  constructor(
+    readonly instance: string,
+    private apiToken: string
+  ) {
     this.api = new BugzillaAPI(instance, apiToken);
   }
 
