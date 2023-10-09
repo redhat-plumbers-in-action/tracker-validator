@@ -34,7 +34,7 @@ describe('test Jira API', () => {
         "component": "systemd",
         "fixVersions": [],
         "id": "RHEL-678",
-        "product": "rhel-10.0.0",
+        "product": "rhel-10.0",
         "status": "New",
         "summary": "[spec] [RHEL 10] use during build generated systemd-user pam config like in Fedora",
       }
@@ -56,7 +56,7 @@ describe('test Jira API', () => {
         "component": "systemd",
         "fixVersions": [],
         "id": "RHEL-678",
-        "product": "rhel-10.0.0",
+        "product": "rhel-10.0",
         "status": "New",
         "summary": "[spec] [RHEL 10] use during build generated systemd-user pam config like in Fedora",
       }
