@@ -32,10 +32,6 @@
 
 The purpose of this action is to offer reliable validator Red Hat trackers like [Bugzilla](https://bugzilla.redhat.com/) and [JIRA](https://issues.redhat.com).
 
-## How does it work
-
-> TBD
-
 ## Features
 
 * product, component and flags validation
@@ -146,15 +142,14 @@ jobs:
           pr-metadata: ${{ needs.download-metadata.outputs.pr-metadata }}
           product: Red Hat Enterprise Linux 9
           component: systemd
-          bugzilla-tracker: 
+          tracker: ${{ fromJSON(needs.commit-linter.outputs.validated-pr-metadata).validation.tracker.id }}
+          tracker-type: ${{ fromJSON(needs.commit-linter.outputs.validated-pr-metadata).validation.tracker.type }}
           bugzilla-instance: https://bugzilla.stage.redhat.com
           bugzilla-api-token: ${{ secrets.BUGZILLA_API_TOKEN }}
+          jira-instance: https://issues.redhat.com
+          jira-api-token: ${{ secrets.JIRA_API_TOKEN }}
           token: ${{ secrets.GITHUB_TOKEN }}
 ```
-
-### Real-life examples
-
-> ...
 
 ## Configuration options
 
@@ -191,7 +186,7 @@ Pull Request metadata has the following format: [metadata format](https://github
 
 ### config-path
 
-Path to configuration file. Configuration file format is described in: [Configuration section](#Configuration).
+Path to configuration file. Configuration file format is described in: [Configuration section](#configuration).
 
 * default value: `.github/tracker-validator.yml`
 * requirements: `optional`
@@ -262,15 +257,50 @@ permissions:
 
 ## Configuration
 
-### product
+```yml
+labels:
+  missing-tracker: tracker/missing
+  invalid-product: tracker/invalid-product
+  invalid-component: tracker/invalid-component
+  unapproved: tracker/unapproved
+products: []
+```
+
+### `labels` keyword
+
+Allows you to set custom labels for certain conditions. When no value is provided, default value is used.
+
+#### `missing-tracker` keyword
+
+Name of the label which will be set when tracker is missing.
+
+* default value: `tracker/missing`
+
+#### `invalid-product` keyword
+
+Name of the label which will be set when tracker is targeting invalid product.
+
+* default value: `tracker/invalid-product`
+
+#### `invalid-component` keyword
+
+Name of the label which will be set when tracker is targeting invalid component.
+
+* default value: `tracker/invalid-component`
+
+#### `unapproved` keyword
+
+Name of the label which will be set when tracker is not approved.
+
+* default value: `tracker/unapproved`
+
+### `product` keyword
 
 Product name is used for validation if provided tracker is targeting the expected product. For example, for Bugzilla: `product: Red Hat Enterprise Linux 9`. If product is not provided, validation will be skipped.
 
 * default value: `undefined`
 * requirements: `optional`
 
-> ...
-
 ## Limitations
 
-> ...
+* Status checks from Pull Request Validator are randomly assigned to check suites, GitHub API for check suites doesn't provide a way to assign a check to a specific suite.
