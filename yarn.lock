@@ -1228,12 +1228,12 @@ __metadata:
   linkType: hard
 
 "bugzilla@npm:^3.1.0":
-  version: 3.1.1
-  resolution: "bugzilla@npm:3.1.1"
+  version: 3.1.2
+  resolution: "bugzilla@npm:3.1.2"
   dependencies:
     axios: ^1.0.0
     luxon: ^3.0.1
-  checksum: 474d615a58d8cc655dbab6bffb8594e457664c77261e4baee1304b8a34b5b66bbf9487cb8f0118e762fb5773f4a353cf598adc51d4872a2a428da9a483e044bb
+  checksum: 1ff2e657931ea7272680a1f81adc2397de21bbc122f4bb660294edcf38226c4277553c13480c4e5f8971f634613d0eb8f4e1574cfe2d42f854329852d8ec4bc2
   languageName: node
   linkType: hard
 
