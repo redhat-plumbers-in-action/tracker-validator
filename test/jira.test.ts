@@ -45,7 +45,7 @@ describe('test Jira API', () => {
     const version = await context.jira.getVersion();
 
     expect(version).toBeDefined();
-    expect(version).toMatchInlineSnapshot('"9.4.2"');
+    expect(version).toMatchInlineSnapshot('"9.4.12"');
 
     const issueId = rhel10IssueID;
     const issue = await context.jira.getIssueDetails(issueId);

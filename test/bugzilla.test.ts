@@ -33,40 +33,44 @@ describe('test Bugzilla API', () => {
 
       expect(bug).toBeDefined();
       expect(bug).toMatchInlineSnapshot(`
-      {
-        "component": "systemd",
-        "flags": [
-          {
-            "name": "needinfo",
-            "status": "?",
-          },
-          {
-            "name": "qe_test_coverage",
-            "status": "?",
-          },
-          {
-            "name": "release",
-            "status": "?",
-          },
-          {
-            "name": "mirror",
-            "status": "+",
-          },
-          {
-            "name": "devel_ack",
-            "status": "+",
-          },
-          {
-            "name": "qa_ack",
-            "status": "+",
-          },
-        ],
-        "id": "2013411",
-        "product": "Red Hat Enterprise Linux 9",
-        "status": "POST",
-        "summary": "[test] source-git automation test bug",
-      }
-    `);
+        {
+          "component": "systemd",
+          "flags": [
+            {
+              "name": "needinfo",
+              "status": "?",
+            },
+            {
+              "name": "qe_test_coverage",
+              "status": "?",
+            },
+            {
+              "name": "release",
+              "status": "?",
+            },
+            {
+              "name": "mirror",
+              "status": "+",
+            },
+            {
+              "name": "devel_ack",
+              "status": "+",
+            },
+            {
+              "name": "qa_ack",
+              "status": "+",
+            },
+            {
+              "name": "stale",
+              "status": "?",
+            },
+          ],
+          "id": "2013411",
+          "product": "Red Hat Enterprise Linux 9",
+          "status": "POST",
+          "summary": "[test] source-git automation test bug",
+        }
+      `);
     }
   );
 
