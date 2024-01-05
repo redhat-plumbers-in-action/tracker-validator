@@ -170,6 +170,8 @@ Action currently accepts the following options:
     bugzilla-api-token: <Bugzilla API token>
     jira-instance:      <Jira instance URL>
     jiira-api-token:    <Jira API token>
+    set-status:         <true or false>
+    status-title:       <status title>
     token:              <GitHub token or PAT>
 
 # ...
@@ -233,11 +235,25 @@ The URL of the Jira instance on which will be performed API requests and validat
 * default value: `undefined`
 * requirements: `required`
 
-### jiira-api-token
+### jira-api-token
 
 The Jira API token is used for performing API requests. The token should be stored as GitHub secret. Never paste the token directly into the workflow file.
 
 * default value: `undefined`
+* requirements: `optional`
+
+### set-status
+
+Set status on Pull Request. If enabled, Action will create check-run status with validation results.
+
+* default value: `false`
+* requirements: `optional`
+
+### status-title
+
+Optional H3 title of status message.
+
+* default value: `Tracker validation`
 * requirements: `optional`
 
 ### token
@@ -300,6 +316,12 @@ Product name is used for validation if provided tracker is targeting the expecte
 
 * default value: `undefined`
 * requirements: `optional`
+
+## Outputs
+
+### `status`
+
+Message with status of Tracker validation.
 
 ## Limitations
 

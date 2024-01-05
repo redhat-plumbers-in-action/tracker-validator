@@ -1,5 +1,6 @@
 import { debug } from '@actions/core';
 import { Octokit } from '@octokit/core';
+import { ValidationError } from './error';
 // import { Endpoints } from '@octokit/types';
 
 // Update check run - check completed + conclusion
@@ -51,7 +52,7 @@ export function getFailedMessage(error: string[]): string {
     return '';
   }
 
-  return '### Failed' + '\n\n' + error.join('\n');
+  return '#### Failed' + '\n\n' + error.join('\n');
 }
 
 export function getSuccessMessage(message: string[]): string {
@@ -59,7 +60,7 @@ export function getSuccessMessage(message: string[]): string {
     return '';
   }
 
-  return '### Success' + '\n\n' + message.join('\n');
+  return '#### Success' + '\n\n' + message.join('\n');
 }
 
 export async function setLabels(
@@ -104,7 +105,7 @@ export async function removeLabel(
 }
 
 export function raise(error: string): never {
-  throw new Error(error);
+  throw new ValidationError(error);
 }
 
 export async function getTitle(
