@@ -1,5 +1,5 @@
 var _a, _b;
-import { getInput, setFailed } from '@actions/core';
+import { getInput, setFailed, setOutput } from '@actions/core';
 import { z } from 'zod';
 import '@total-typescript/ts-reset';
 import action from './action';
@@ -31,8 +31,13 @@ const checkRunID = (await octokit.request('POST /repos/{owner}/{repo}/check-runs
     },
 })).data.id;
 try {
-    const message = await action(octokit, owner, repo, prMetadata);
+    let message = await action(octokit, owner, repo, prMetadata);
+    const statusTitle = getInput('status-title', { required: true });
     await updateStatusCheck(octokit, checkRunID, owner, repo, 'completed', 'success', message);
+    if (statusTitle.length > 0) {
+        message = `### ${statusTitle}\n\n${message}`;
+    }
+    setOutput('status', JSON.stringify(message, null, 2));
 }
 catch (error) {
     let message;

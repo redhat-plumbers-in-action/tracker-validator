@@ -51,7 +51,7 @@ export function getFailedMessage(error: string[]): string {
     return '';
   }
 
-  return '### Failed' + '\n\n' + error.join('\n');
+  return '#### Failed' + '\n\n' + error.join('\n');
 }
 
 export function getSuccessMessage(message: string[]): string {
@@ -59,7 +59,7 @@ export function getSuccessMessage(message: string[]): string {
     return '';
   }
 
-  return '### Success' + '\n\n' + message.join('\n');
+  return '#### Success' + '\n\n' + message.join('\n');
 }
 
 export async function setLabels(

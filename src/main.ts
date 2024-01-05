@@ -1,4 +1,4 @@
-import { getInput, setFailed } from '@actions/core';
+import { getInput, setFailed, setOutput } from '@actions/core';
 import { z } from 'zod';
 
 import '@total-typescript/ts-reset';
@@ -42,7 +42,8 @@ const checkRunID = (
 ).data.id;
 
 try {
-  const message = await action(octokit, owner, repo, prMetadata);
+  let message = await action(octokit, owner, repo, prMetadata);
+  const statusTitle = getInput('status-title', { required: true });
 
   await updateStatusCheck(
     octokit,
@@ -53,6 +54,11 @@ try {
     'success',
     message
   );
+
+  if (statusTitle.length > 0) {
+    message = `### ${statusTitle}\n\n${message}`;
+  }
+  setOutput('status', JSON.stringify(message, null, 2));
 } catch (error) {
   let message: string;
 
