@@ -50,9 +50,10 @@ if (setStatus) {
   ).data.id;
 }
 
+const statusTitle = getInput('status-title', { required: true });
+
 try {
   let message = await action(octokit, owner, repo, prMetadata);
-  const statusTitle = getInput('status-title', { required: true });
 
   if (setStatus && checkRunID) {
     await updateStatusCheck(
@@ -79,13 +80,6 @@ try {
     message = JSON.stringify(error);
   }
 
-  // set status output only if error was thrown by us
-  if (error instanceof ValidationError) {
-    setOutput('status', JSON.stringify(message));
-  } else {
-    setFailed(message);
-  }
-
   if (setStatus && checkRunID) {
     await updateStatusCheck(
       octokit,
@@ -96,5 +90,16 @@ try {
       'failure',
       message
     );
+  }
+
+  if (statusTitle.length > 0) {
+    message = `### ${statusTitle}\n\n${message}`;
+  }
+
+  // set status output only if error was thrown by us
+  if (error instanceof ValidationError) {
+    setOutput('status', JSON.stringify(message));
+  } else {
+    setFailed(message);
   }
 }
