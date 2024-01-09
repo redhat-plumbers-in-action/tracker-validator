@@ -52,7 +52,7 @@ async function action(
       setLabels(octokit, owner, repo, prMetadata.number, [
         config.labels['missing-tracker'],
       ]);
-      raise(`Missing tracker or Unknown tracker type: '${trackerType}'`);
+      raise(`🔴 Missing tracker or Unknown tracker type: '${trackerType}'`);
   }
 
   let message: string[] = [];
@@ -97,7 +97,7 @@ async function action(
 
     error(`getIssueDetails(${tracker}): ${e}`);
     raise(
-      `Tracker '${tracker}' does not exist on ${trackerController.adapter.instance}`
+      `🔴 Tracker '${tracker}' does not exist on ${trackerController.adapter.instance}`
     );
   }
 
