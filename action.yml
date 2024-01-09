@@ -39,6 +39,10 @@ inputs:
   jira-api-token:
     description: Jira API TOKEN
 
+  set-status:
+    required: true
+    default: 'false'
+    description: Set check-run status on Pull Request
   status-title:
     required: false
     default: Tracker validation

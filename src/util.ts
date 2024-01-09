@@ -1,5 +1,6 @@
 import { debug } from '@actions/core';
 import { Octokit } from '@octokit/core';
+import { ValidationError } from './error';
 // import { Endpoints } from '@octokit/types';
 
 // Update check run - check completed + conclusion
@@ -104,7 +105,7 @@ export async function removeLabel(
 }
 
 export function raise(error: string): never {
-  throw new Error(error);
+  throw new ValidationError(error);
 }
 
 export async function getTitle(

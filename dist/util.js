@@ -1,4 +1,5 @@
 import { debug } from '@actions/core';
+import { ValidationError } from './error';
 // import { Endpoints } from '@octokit/types';
 // Update check run - check completed + conclusion
 // https://docs.github.com/en/rest/checks/runs?apiVersion=2022-11-28#update-a-check-run
@@ -58,7 +59,7 @@ export async function removeLabel(octokit, owner, repo, issueNumber, label) {
     });
 }
 export function raise(error) {
-    throw new Error(error);
+    throw new ValidationError(error);
 }
 export async function getTitle(octokit, owner, repo, issueNumber) {
     return (await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {

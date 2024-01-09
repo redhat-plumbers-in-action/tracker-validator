@@ -1,4 +1,5 @@
-import { getInput, setFailed, setOutput } from '@actions/core';
+import { getBooleanInput, getInput, setFailed, setOutput } from '@actions/core';
+import { Endpoints } from '@octokit/types';
 import { z } from 'zod';
 
 import '@total-typescript/ts-reset';
@@ -7,6 +8,7 @@ import action from './action';
 import { pullRequestMetadataSchema } from './schema/input';
 import { getOctokit } from './octokit';
 import { updateStatusCheck } from './util';
+import { ValidationError } from './error';
 
 const octokit = getOctokit(getInput('token', { required: true }));
 
@@ -26,34 +28,43 @@ const prMetadataUnsafe = JSON.parse(
 const prMetadata = pullRequestMetadataSchema.parse(prMetadataUnsafe);
 const commitSha = prMetadata.commits[prMetadata.commits.length - 1].sha;
 
-const checkRunID = (
-  await octokit.request('POST /repos/{owner}/{repo}/check-runs', {
-    owner,
-    repo,
-    name: 'Tracker Validator',
-    head_sha: commitSha,
-    status: 'in_progress',
-    started_at: new Date().toISOString(),
-    output: {
-      title: 'Tracker Validator',
-      summary: 'Tracker validation in progress ...',
-    },
-  })
-).data.id;
+const setStatus = getBooleanInput('set-status', { required: true });
+let checkRunID:
+  | Endpoints['POST /repos/{owner}/{repo}/check-runs']['response']['data']['id']
+  | undefined;
+
+if (setStatus) {
+  checkRunID = (
+    await octokit.request('POST /repos/{owner}/{repo}/check-runs', {
+      owner,
+      repo,
+      name: 'Tracker Validator',
+      head_sha: commitSha,
+      status: 'in_progress',
+      started_at: new Date().toISOString(),
+      output: {
+        title: 'Tracker Validator',
+        summary: 'Tracker validation in progress ...',
+      },
+    })
+  ).data.id;
+}
 
 try {
   let message = await action(octokit, owner, repo, prMetadata);
   const statusTitle = getInput('status-title', { required: true });
 
-  await updateStatusCheck(
-    octokit,
-    checkRunID,
-    owner,
-    repo,
-    'completed' as unknown as undefined,
-    'success',
-    message
-  );
+  if (setStatus && checkRunID) {
+    await updateStatusCheck(
+      octokit,
+      checkRunID,
+      owner,
+      repo,
+      'completed' as unknown as undefined,
+      'success',
+      message
+    );
+  }
 
   if (statusTitle.length > 0) {
     message = `### ${statusTitle}\n\n${message}`;
@@ -68,14 +79,22 @@ try {
     message = JSON.stringify(error);
   }
 
-  setFailed(message);
-  await updateStatusCheck(
-    octokit,
-    checkRunID,
-    owner,
-    repo,
-    'completed' as unknown as undefined,
-    'failure',
-    message
-  );
+  // set status output only if error was thrown by us
+  if (error instanceof ValidationError) {
+    setOutput('status', JSON.stringify(message));
+  } else {
+    setFailed(message);
+  }
+
+  if (setStatus && checkRunID) {
+    await updateStatusCheck(
+      octokit,
+      checkRunID,
+      owner,
+      repo,
+      'completed' as unknown as undefined,
+      'failure',
+      message
+    );
+  }
 }
