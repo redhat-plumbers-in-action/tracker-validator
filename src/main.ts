@@ -70,7 +70,8 @@ try {
   if (statusTitle.length > 0) {
     message = `### ${statusTitle}\n\n${message}`;
   }
-  setOutput('status', JSON.stringify(message, null, 2));
+
+  setOutput('status', JSON.stringify(message));
 } catch (error) {
   let message: string;
 
@@ -99,7 +100,7 @@ try {
   // set status output only if error was thrown by us
   if (error instanceof ValidationError) {
     setOutput('status', JSON.stringify(message));
-  } else {
-    setFailed(message);
   }
+
+  setFailed(message);
 }
