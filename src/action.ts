@@ -52,7 +52,9 @@ async function action(
       setLabels(octokit, owner, repo, prMetadata.number, [
         config.labels['missing-tracker'],
       ]);
-      raise(`🔴 Missing tracker or Unknown tracker type: '${trackerType}'`);
+      raise(
+        `🔴 Missing tracker or Unknown tracker type; type: '${trackerType}'`
+      );
   }
 
   let message: string[] = [];
