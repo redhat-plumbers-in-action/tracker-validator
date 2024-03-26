@@ -98,6 +98,7 @@ export type CommitMetadata = z.infer<typeof commitMetadataSchema>;
 export declare const pullRequestMetadataSchema: z.ZodObject<{
     number: z.ZodNumber;
     base: z.ZodString;
+    ref: z.ZodString;
     commits: z.ZodArray<z.ZodObject<{
         sha: z.ZodString;
         url: z.ZodString;
@@ -148,6 +149,7 @@ export declare const pullRequestMetadataSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     number: number;
     base: string;
+    ref: string;
     commits: {
         url: string;
         sha: string;
@@ -162,6 +164,7 @@ export declare const pullRequestMetadataSchema: z.ZodObject<{
 }, {
     number: number;
     base: string;
+    ref: string;
     commits: {
         url: string;
         sha: string;

@@ -1,5 +1,7 @@
 import { debug } from '@actions/core';
+import { context } from '@actions/github';
 import { Octokit } from '@octokit/core';
+
 import { ValidationError } from './error';
 // import { Endpoints } from '@octokit/types';
 
@@ -11,8 +13,6 @@ import { ValidationError } from './error';
 export async function updateStatusCheck(
   octokit: Octokit,
   checkID: number,
-  owner: string,
-  repo: string,
   // https://github.com/octokit/types.ts/issues/283#issuecomment-1579239229
   // Endpoints['POST /repos/{owner}/{repo}/check-runs']['parameters']['status']
   status: undefined,
@@ -33,8 +33,7 @@ export async function updateStatusCheck(
   await octokit.request(
     'PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}',
     {
-      owner,
-      repo,
+      ...context.repo,
       check_run_id: checkID,
       status,
       completed_at: new Date().toISOString(),
@@ -65,8 +64,6 @@ export function getSuccessMessage(message: string[]): string {
 
 export async function setLabels(
   octokit: Octokit,
-  owner: string,
-  repo: string,
   issueNumber: number,
   labels: string[]
 ) {
@@ -78,8 +75,7 @@ export async function setLabels(
   await octokit.request(
     'POST /repos/{owner}/{repo}/issues/{issue_number}/labels',
     {
-      owner,
-      repo,
+      ...context.repo,
       issue_number: issueNumber,
       labels,
     }
@@ -88,16 +84,13 @@ export async function setLabels(
 
 export async function removeLabel(
   octokit: Octokit,
-  owner: string,
-  repo: string,
   issueNumber: number,
   label: string
 ) {
   await octokit.request(
     'DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}',
     {
-      owner,
-      repo,
+      ...context.repo,
       issue_number: issueNumber,
       name: label,
     }
@@ -108,16 +101,10 @@ export function raise(error: string): never {
   throw new ValidationError(error);
 }
 
-export async function getTitle(
-  octokit: Octokit,
-  owner: string,
-  repo: string,
-  issueNumber: number
-) {
+export async function getTitle(octokit: Octokit, issueNumber: number) {
   return (
     await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
-      owner,
-      repo,
+      ...context.repo,
       pull_number: issueNumber,
     })
   ).data.title;
@@ -138,13 +125,11 @@ export function getCurrentTitle(title: string): string {
 
 export async function setTitle(
   octokit: Octokit,
-  owner: string,
-  repo: string,
   issueNumber: number,
   tracker: string,
   trackerType: 'bugzilla' | 'jira'
 ): Promise<string> {
-  const currentTitle = await getTitle(octokit, owner, repo, issueNumber);
+  const currentTitle = await getTitle(octokit, issueNumber);
 
   const hash = trackerType === 'bugzilla' ? '#' : '';
   if (isTrackerInTitle(currentTitle, `${hash}${tracker}`)) {
@@ -154,8 +139,7 @@ export async function setTitle(
   const newTitle = `(${hash}${tracker}) ${getCurrentTitle(currentTitle)}`;
 
   await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
-    owner,
-    repo,
+    ...context.repo,
     issue_number: issueNumber,
     title: newTitle,
   });
