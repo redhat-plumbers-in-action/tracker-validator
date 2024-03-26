@@ -1,7 +1,6 @@
-"use strict";
-exports.id = 37;
-exports.ids = [37];
-exports.modules = {
+export const id = 37;
+export const ids = [37];
+export const modules = {
 
 /***/ 94037:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
@@ -449,5 +448,5 @@ async function toFormData(Body, ct) {
 /***/ })
 
 };
-;
+
 //# sourceMappingURL=37.index.js.map
