@@ -1,5 +1,3 @@
----
-
 name: Unit tests
 
 on:
@@ -17,17 +15,13 @@ jobs:
     name: Unit Tests - Node.js
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [ 18.x, 20.x ]
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 20.x
           cache: yarn
           cache-dependency-path: yarn.lock
 
@@ -51,7 +45,6 @@ jobs:
         run: yarn test
 
       - name: Codecov
-        if: ${{ matrix.node-version == '20.x' }}
-        uses: codecov/codecov-action@v3
-
-...
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
