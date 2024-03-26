@@ -1,6 +1,6 @@
 import { getBooleanInput, getInput, setFailed, setOutput } from '@actions/core';
+import { context } from '@actions/github';
 import { Endpoints } from '@octokit/types';
-import { z } from 'zod';
 
 import '@total-typescript/ts-reset';
 
@@ -12,21 +12,12 @@ import { ValidationError } from './error';
 
 const octokit = getOctokit(getInput('token', { required: true }));
 
-const owner = z
-  .string()
-  .min(1)
-  .parse(process.env.GITHUB_REPOSITORY?.split('/')[0]);
-const repo = z
-  .string()
-  .min(1)
-  .parse(process.env.GITHUB_REPOSITORY?.split('/')[1]);
-
 const prMetadataUnsafe = JSON.parse(
   getInput('pr-metadata', { required: true })
 );
 
 const prMetadata = pullRequestMetadataSchema.parse(prMetadataUnsafe);
-const commitSha = prMetadata.commits[prMetadata.commits.length - 1].sha;
+const commitSha = prMetadata.ref;
 
 const setStatus = getBooleanInput('set-status', { required: true });
 let checkRunID:
@@ -36,8 +27,7 @@ let checkRunID:
 if (setStatus) {
   checkRunID = (
     await octokit.request('POST /repos/{owner}/{repo}/check-runs', {
-      owner,
-      repo,
+      ...context.repo,
       name: 'Tracker Validator',
       head_sha: commitSha,
       status: 'in_progress',
@@ -53,14 +43,12 @@ if (setStatus) {
 const statusTitle = getInput('status-title', { required: true });
 
 try {
-  let message = await action(octokit, owner, repo, prMetadata);
+  let message = await action(octokit, prMetadata);
 
   if (setStatus && checkRunID) {
     await updateStatusCheck(
       octokit,
       checkRunID,
-      owner,
-      repo,
       'completed' as unknown as undefined,
       'success',
       message
@@ -85,8 +73,6 @@ try {
     await updateStatusCheck(
       octokit,
       checkRunID,
-      owner,
-      repo,
       'completed' as unknown as undefined,
       'failure',
       message
