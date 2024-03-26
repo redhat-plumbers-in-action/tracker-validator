@@ -1,4 +1,5 @@
 import { debug, error, getInput, notice } from '@actions/core';
+import { context } from '@actions/github';
 import { z } from 'zod';
 
 import { Bugzilla } from './bugzilla';
@@ -6,6 +7,7 @@ import { Config } from './config';
 import { Controller, IssueDetails } from './controller';
 import { Jira } from './jira';
 import { CustomOctokit } from './octokit';
+
 import { PullRequestMetadata } from './schema/input';
 import {
   getFailedMessage,
@@ -18,8 +20,6 @@ import {
 
 async function action(
   octokit: CustomOctokit,
-  owner: string,
-  repo: string,
   prMetadata: PullRequestMetadata
 ): Promise<string> {
   const trackerType = getInput('tracker-type', { required: true });
@@ -49,9 +49,7 @@ async function action(
       break;
 
     default:
-      setLabels(octokit, owner, repo, prMetadata.number, [
-        config.labels['missing-tracker'],
-      ]);
+      setLabels(octokit, prMetadata.number, [config.labels['missing-tracker']]);
       raise(
         `🔴 Missing tracker or Unknown tracker type; type: '${trackerType}'`
       );
@@ -68,8 +66,7 @@ async function action(
         await octokit.request(
           'GET /repos/{owner}/{repo}/issues/{issue_number}/labels',
           {
-            owner,
-            repo,
+            ...context.repo,
             issue_number: prMetadata.number,
           }
         )
@@ -84,18 +81,10 @@ async function action(
     issueDetails = await trackerController.adapter.getIssueDetails(tracker);
 
     if (labelsFromPR.includes(config.labels['missing-tracker'])) {
-      removeLabel(
-        octokit,
-        owner,
-        repo,
-        prMetadata.number,
-        config.labels['missing-tracker']
-      );
+      removeLabel(octokit, prMetadata.number, config.labels['missing-tracker']);
     }
   } catch (e) {
-    setLabels(octokit, owner, repo, prMetadata.number, [
-      config.labels['missing-tracker'],
-    ]);
+    setLabels(octokit, prMetadata.number, [config.labels['missing-tracker']]);
 
     error(`getIssueDetails(${tracker}): ${e}`);
     raise(
@@ -105,8 +94,6 @@ async function action(
 
   const titleResult = await setTitle(
     octokit,
-    owner,
-    repo,
     prMetadata.number,
     tracker,
     trackerType
@@ -125,13 +112,7 @@ async function action(
     );
   } else {
     if (labelsFromPR.includes(config.labels['invalid-product'])) {
-      removeLabel(
-        octokit,
-        owner,
-        repo,
-        prMetadata.number,
-        config.labels['invalid-product']
-      );
+      removeLabel(octokit, prMetadata.number, config.labels['invalid-product']);
     }
 
     // Set base branch as label if it is not main or master (rhel-9.0.0, rhel-8.5.0, rhel-7.9, etc.)
@@ -165,8 +146,6 @@ async function action(
     if (labelsFromPR.includes(config.labels['invalid-component'])) {
       removeLabel(
         octokit,
-        owner,
-        repo,
         prMetadata.number,
         config.labels['invalid-component']
       );
@@ -183,13 +162,7 @@ async function action(
     );
   } else {
     if (labelsFromPR.includes(config.labels.unapproved)) {
-      removeLabel(
-        octokit,
-        owner,
-        repo,
-        prMetadata.number,
-        config.labels.unapproved
-      );
+      removeLabel(octokit, prMetadata.number, config.labels.unapproved);
     }
     message.push(
       `🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} has been approved`
@@ -199,7 +172,7 @@ async function action(
   if (isMatchingProduct && isMatchingComponent) {
     const linkMessage = await trackerController.adapter.addLink(
       'https://github.com/',
-      `${owner}/${repo}/pull/${prMetadata.number}`
+      `${context.repo.owner}/${context.repo.repo}/pull/${prMetadata.number}`
     );
     notice(`🔗 ${linkMessage}`);
 
@@ -209,7 +182,7 @@ async function action(
 
   // TODO: Once validated update Tracker status and add/update comment in PR
 
-  setLabels(octokit, owner, repo, prMetadata.number, labels.add);
+  setLabels(octokit, prMetadata.number, labels.add);
 
   if (err.length > 0) {
     raise(getFailedMessage(err) + '\n\n' + getSuccessMessage(message));
