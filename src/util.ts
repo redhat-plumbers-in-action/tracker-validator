@@ -62,6 +62,14 @@ export function getSuccessMessage(message: string[]): string {
   return '#### Success' + '\n\n' + message.join('\n');
 }
 
+export function getTipMessage(tip: string[]): string {
+  if (tip.length === 0) {
+    return '';
+  }
+
+  return '> [!TIP]' + '\n>\n' + tip.map(t => `> ${t}`).join('\n');
+}
+
 export async function setLabels(
   octokit: Octokit,
   issueNumber: number,

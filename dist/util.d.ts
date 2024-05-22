@@ -2,6 +2,7 @@ import { Octokit } from '@octokit/core';
 export declare function updateStatusCheck(octokit: Octokit, checkID: number, status: undefined, conclusion: 'action_required' | 'cancelled' | 'failure' | 'neutral' | 'success' | 'skipped' | 'stale' | 'timed_out' | undefined, message: string): Promise<void>;
 export declare function getFailedMessage(error: string[]): string;
 export declare function getSuccessMessage(message: string[]): string;
+export declare function getTipMessage(tip: string[]): string;
 export declare function setLabels(octokit: Octokit, issueNumber: number, labels: string[]): Promise<void>;
 export declare function removeLabel(octokit: Octokit, issueNumber: number, label: string): Promise<void>;
 export declare function raise(error: string): never;

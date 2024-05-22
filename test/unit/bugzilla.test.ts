@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { Bugzilla } from '../src/bugzilla';
+import { Bugzilla } from '../../src/bugzilla';
 import BugzillaAPI from 'bugzilla';
-import { IssueDetails, Flag } from '../src/controller';
+import { IssueDetails, Flag } from '../../src/controller';
 
 interface TestContext {
   bugzilla: Bugzilla;

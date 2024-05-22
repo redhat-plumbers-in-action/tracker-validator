@@ -9,6 +9,10 @@ export class Bugzilla implements Adapter<BugzillaAPI> {
   readonly api: BugzillaAPI;
   issueDetails: IssueDetails | undefined;
 
+  readonly tips = {
+    approval: 'Bugzilla is approved if it has `release` flag set to `+`',
+  };
+
   constructor(
     readonly instance: string,
     private apiToken: string

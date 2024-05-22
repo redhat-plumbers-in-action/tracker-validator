@@ -7,6 +7,7 @@ import { Jira } from './jira';
 export interface Adapter<T> {
   readonly api: T;
   readonly instance: string;
+  readonly tips: Tips;
 
   getIssueDetails(id: string): Promise<IssueDetails>;
 
@@ -19,6 +20,10 @@ export interface Adapter<T> {
   changeState(): Promise<string>;
   addLink(urlType: string, bugId: string): Promise<string>;
 }
+
+export type Tips = {
+  approval: string;
+};
 
 export type IssueDetails = {
   id: string;

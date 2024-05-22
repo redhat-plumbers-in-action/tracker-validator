@@ -9,6 +9,10 @@ export class Jira implements Adapter<Version2Client> {
   readonly api: Version2Client;
   issueDetails: IssueDetails | undefined;
 
+  readonly tips = {
+    approval: 'Jira is approved if it has set Fix Version/s',
+  };
+
   constructor(
     readonly instance: string,
     apiToken: string

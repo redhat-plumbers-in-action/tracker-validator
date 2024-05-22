@@ -1,6 +1,11 @@
 import { describe, expect, test } from 'vitest';
 
-import { getFailedMessage, getSuccessMessage, raise } from '../src/util';
+import {
+  getFailedMessage,
+  getSuccessMessage,
+  getTipMessage,
+  raise,
+} from '../../src/util';
 
 describe('test basic utility functions', () => {
   test.todo('updateStatusCheck()', async () => {});
@@ -36,6 +41,23 @@ describe('test basic utility functions', () => {
 
       success1
       success2"
+    `);
+  });
+
+  test('getTipMessage()', () => {
+    let tip: string[] = [];
+    let message = getTipMessage(tip);
+
+    expect(message).toEqual('');
+
+    tip = ['success1', 'success2'];
+    message = getTipMessage(tip);
+
+    expect(message).toMatchInlineSnapshot(`
+      "> [!TIP]
+      >
+      > success1
+      > success2"
     `);
   });
 

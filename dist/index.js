@@ -91892,6 +91892,9 @@ class Bugzilla {
     constructor(instance, apiToken) {
         this.instance = instance;
         this.apiToken = apiToken;
+        this.tips = {
+            approval: 'Bugzilla is approved if it has `release` flag set to `+`',
+        };
         this.api = new dist/* default */.Z(instance, apiToken);
     }
     async getIssueDetails(id) {
@@ -92069,6 +92072,9 @@ var out = __nccwpck_require__(74689);
 class Jira {
     constructor(instance, apiToken) {
         this.instance = instance;
+        this.tips = {
+            approval: 'Jira is approved if it has set Fix Version/s',
+        };
         this.api = new out.Version2Client({
             host: instance,
             authentication: {
@@ -92216,6 +92222,7 @@ async function action(octokit, prMetadata) {
     }
     let message = [];
     let err = [];
+    let tip = [];
     let labels = { add: [], remove: [] };
     const labelsFromPR = lib.z.array(lib.z.object({ name: lib.z.string() }).transform(label => label.name))
         .parse((await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}/labels', Object.assign(Object.assign({}, github.context.repo), { issue_number: prMetadata.number }))).data);
@@ -92266,6 +92273,7 @@ async function action(octokit, prMetadata) {
     if (!trackerController.adapter.isApproved()) {
         labels.add.push(config.labels.unapproved);
         err.push(`🔴 Tracker ${trackerController.adapter.getMarkdownUrl()} has not been approved`);
+        tip.push(`🔵 ${trackerController.adapter.tips.approval}`);
     }
     else {
         if (labelsFromPR.includes(config.labels.unapproved)) {
@@ -92282,7 +92290,11 @@ async function action(octokit, prMetadata) {
     // TODO: Once validated update Tracker status and add/update comment in PR
     (0,util/* setLabels */.Uu)(octokit, prMetadata.number, labels.add);
     if (err.length > 0) {
-        (0,util/* raise */.OU)((0,util/* getFailedMessage */.T5)(err) + '\n\n' + (0,util/* getSuccessMessage */.Yr)(message));
+        (0,util/* raise */.OU)((0,util/* getFailedMessage */.T5)(err) +
+            '\n\n' +
+            (0,util/* getSuccessMessage */.Yr)(message) +
+            '\n\n' +
+            (0,util/* getTipMessage */.r4)(tip));
     }
     return (0,util/* getSuccessMessage */.Yr)(message);
 }
@@ -97800,7 +97812,8 @@ const pullRequestMetadataSchema = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
 /* harmony export */   "Td": () => (/* binding */ setTitle),
 /* harmony export */   "Uu": () => (/* binding */ setLabels),
 /* harmony export */   "Yr": () => (/* binding */ getSuccessMessage),
-/* harmony export */   "qv": () => (/* binding */ removeLabel)
+/* harmony export */   "qv": () => (/* binding */ removeLabel),
+/* harmony export */   "r4": () => (/* binding */ getTipMessage)
 /* harmony export */ });
 /* unused harmony exports getTitle, isTrackerInTitle, getCurrentTitle */
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(42186);
@@ -97840,6 +97853,12 @@ function getSuccessMessage(message) {
         return '';
     }
     return '#### Success' + '\n\n' + message.join('\n');
+}
+function getTipMessage(tip) {
+    if (tip.length === 0) {
+        return '';
+    }
+    return '> [!TIP]' + '\n>\n' + tip.map(t => `> ${t}`).join('\n');
 }
 async function setLabels(octokit, issueNumber, labels) {
     if (labels.length === 0) {
