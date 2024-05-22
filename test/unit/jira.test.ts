@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { Jira } from '../src/jira';
+import { Jira } from '../../src/jira';
 import { Version2Client } from 'jira.js';
-import { IssueDetails, Flag } from '../src/controller';
+import { IssueDetails, Flag } from '../../src/controller';
 
 interface TestContext {
   jira: Jira;

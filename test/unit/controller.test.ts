@@ -7,10 +7,10 @@ import {
   Controller,
   SupportedAdapters,
   SupportedControllers,
-} from '../src/controller';
+} from '../../src/controller';
 
-import { Bugzilla } from '../src/bugzilla';
-import { Jira } from '../src/jira';
+import { Bugzilla } from '../../src/bugzilla';
+import { Jira } from '../../src/jira';
 
 describe('test class Controller', () => {
   test('type SupportedControllers', () => {

@@ -4,6 +4,9 @@ export declare class Jira implements Adapter<Version2Client> {
     readonly instance: string;
     readonly api: Version2Client;
     issueDetails: IssueDetails | undefined;
+    readonly tips: {
+        approval: string;
+    };
     constructor(instance: string, apiToken: string);
     getIssueDetails(id: string): Promise<IssueDetails>;
     getVersion(): Promise<string>;

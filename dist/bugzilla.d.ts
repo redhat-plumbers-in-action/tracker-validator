@@ -5,6 +5,9 @@ export declare class Bugzilla implements Adapter<BugzillaAPI> {
     private apiToken;
     readonly api: BugzillaAPI;
     issueDetails: IssueDetails | undefined;
+    readonly tips: {
+        approval: string;
+    };
     constructor(instance: string, apiToken: string);
     getIssueDetails(id: string): Promise<IssueDetails>;
     getVersion(): Promise<string>;

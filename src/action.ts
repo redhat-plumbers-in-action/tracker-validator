@@ -12,6 +12,7 @@ import { PullRequestMetadata } from './schema/input';
 import {
   getFailedMessage,
   getSuccessMessage,
+  getTipMessage,
   raise,
   removeLabel,
   setLabels,
@@ -57,6 +58,7 @@ async function action(
 
   let message: string[] = [];
   let err: string[] = [];
+  let tip: string[] = [];
   let labels: { add: string[]; remove: string[] } = { add: [], remove: [] };
 
   const labelsFromPR = z
@@ -160,6 +162,7 @@ async function action(
     err.push(
       `🔴 Tracker ${trackerController.adapter.getMarkdownUrl()} has not been approved`
     );
+    tip.push(`🔵 ${trackerController.adapter.tips.approval}`);
   } else {
     if (labelsFromPR.includes(config.labels.unapproved)) {
       removeLabel(octokit, prMetadata.number, config.labels.unapproved);
@@ -185,7 +188,13 @@ async function action(
   setLabels(octokit, prMetadata.number, labels.add);
 
   if (err.length > 0) {
-    raise(getFailedMessage(err) + '\n\n' + getSuccessMessage(message));
+    raise(
+      getFailedMessage(err) +
+        '\n\n' +
+        getSuccessMessage(message) +
+        '\n\n' +
+        getTipMessage(tip)
+    );
   }
 
   return getSuccessMessage(message);
