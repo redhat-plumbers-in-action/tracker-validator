@@ -745,10 +745,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@total-typescript/ts-reset@npm:0.5.1":
-  version: 0.5.1
-  resolution: "@total-typescript/ts-reset@npm:0.5.1"
-  checksum: 10c0/0339e975034ae648e83f08d0d408d9bda926fdb0cbaddf8efebd3105b378847be8bc9c2f1aa1435e2221f5958019bc2cb562211745a52fe076a109645c8a31f0
+"@total-typescript/ts-reset@npm:0.6.1":
+  version: 0.6.1
+  resolution: "@total-typescript/ts-reset@npm:0.6.1"
+  checksum: 10c0/c42c592054d33e86ac870065820888f89f05e47b2cfbc6bed95f3084b1f6d13b0231b5b8577eabf461aeb3f37c63ae3216f343b573f7136766eb750aac0dd1ab
   languageName: node
   linkType: hard
 
@@ -2567,7 +2567,7 @@ __metadata:
     "@octokit/rest": "npm:20.1.1"
     "@octokit/types": "npm:13.5.0"
     "@probot/octokit-plugin-config": "npm:3.0.2"
-    "@total-typescript/ts-reset": "npm:0.5.1"
+    "@total-typescript/ts-reset": "npm:0.6.1"
     "@types/node": "npm:20.12.12"
     "@vercel/ncc": "npm:0.38.1"
     "@vitest/coverage-v8": "npm:1.6.0"
