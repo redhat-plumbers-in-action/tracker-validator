@@ -991,7 +991,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.0.0, axios@npm:^1.6.8":
+"axios@npm:^1.0.0":
   version: 1.7.0
   resolution: "axios@npm:1.7.0"
   dependencies:
@@ -999,6 +999,17 @@ __metadata:
     form-data: "npm:^4.0.0"
     proxy-from-env: "npm:^1.1.0"
   checksum: 10c0/340ea17372f532c35b0713314b3454611a14fa9ed5ac31b6b84791e05231e878e72ea8d8b8cf780c00285052eea33549afa8fede495d9ee38248a2dac16492ee
+  languageName: node
+  linkType: hard
+
+"axios@npm:^1.7.7":
+  version: 1.7.7
+  resolution: "axios@npm:1.7.7"
+  dependencies:
+    follow-redirects: "npm:^1.15.6"
+    form-data: "npm:^4.0.0"
+    proxy-from-env: "npm:^1.1.0"
+  checksum: 10c0/4499efc89e86b0b49ffddc018798de05fab26e3bf57913818266be73279a6418c3ce8f9e934c7d2d707ab8c095e837fc6c90608fb7715b94d357720b5f568af7
   languageName: node
   linkType: hard
 
@@ -1730,14 +1741,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jira.js@npm:4.0.0":
-  version: 4.0.0
-  resolution: "jira.js@npm:4.0.0"
+"jira.js@npm:4.0.2":
+  version: 4.0.2
+  resolution: "jira.js@npm:4.0.2"
   dependencies:
-    axios: "npm:^1.6.8"
+    axios: "npm:^1.7.7"
     form-data: "npm:^4.0.0"
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/8e7d29816f33c29ba57e10483169a6b450c95c727caac24c2596ad83be55ecf0ade24751ba4768c417f50c132affbd8c2af65135125afbc00b5700ca9f1ce950
+    tslib: "npm:^2.7.0"
+  checksum: 10c0/63bdfa9b14f15771a13d18b377c1d587ed1c8df6f71d2b2c6838160a017ba9b1f425fc90c4d07f99088df32387f437377b86df5253c9e043b083ddce7822e420
   languageName: node
   linkType: hard
 
@@ -2573,7 +2584,7 @@ __metadata:
     "@vitest/coverage-v8": "npm:1.6.0"
     bugzilla: "npm:3.1.2"
     dotenv: "npm:16.4.5"
-    jira.js: "npm:4.0.0"
+    jira.js: "npm:4.0.2"
     node-fetch: "npm:3.3.2"
     prettier: "npm:3.2.5"
     ts-node: "npm:10.9.2"
@@ -2621,10 +2632,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.6.2":
-  version: 2.6.2
-  resolution: "tslib@npm:2.6.2"
-  checksum: 10c0/e03a8a4271152c8b26604ed45535954c0a45296e32445b4b87f8a5abdb2421f40b59b4ca437c4346af0f28179780d604094eb64546bee2019d903d01c6c19bdb
+"tslib@npm:^2.7.0":
+  version: 2.7.0
+  resolution: "tslib@npm:2.7.0"
+  checksum: 10c0/469e1d5bf1af585742128827000711efa61010b699cb040ab1800bcd3ccdd37f63ec30642c9e07c4439c1db6e46345582614275daca3e0f4abae29b0083f04a6
   languageName: node
   linkType: hard
 
