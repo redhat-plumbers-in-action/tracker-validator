@@ -26,8 +26,8 @@ export declare const singleCommitMetadataSchema: z.ZodObject<{
         }[];
     }>;
 }, "strip", z.ZodTypeAny, {
-    url: string;
     sha: string;
+    url: string;
     message: {
         title: string;
         body: string;
@@ -36,8 +36,8 @@ export declare const singleCommitMetadataSchema: z.ZodObject<{
         }[];
     };
 }, {
-    url: string;
     sha: string;
+    url: string;
     message: {
         title: string;
         body: string;
@@ -74,8 +74,8 @@ export declare const commitMetadataSchema: z.ZodArray<z.ZodObject<{
         }[];
     }>;
 }, "strip", z.ZodTypeAny, {
-    url: string;
     sha: string;
+    url: string;
     message: {
         title: string;
         body: string;
@@ -84,8 +84,8 @@ export declare const commitMetadataSchema: z.ZodArray<z.ZodObject<{
         }[];
     };
 }, {
-    url: string;
     sha: string;
+    url: string;
     message: {
         title: string;
         body: string;
@@ -126,8 +126,8 @@ export declare const pullRequestMetadataSchema: z.ZodObject<{
             }[];
         }>;
     }, "strip", z.ZodTypeAny, {
-        url: string;
         sha: string;
+        url: string;
         message: {
             title: string;
             body: string;
@@ -136,8 +136,8 @@ export declare const pullRequestMetadataSchema: z.ZodObject<{
             }[];
         };
     }, {
-        url: string;
         sha: string;
+        url: string;
         message: {
             title: string;
             body: string;
@@ -151,8 +151,8 @@ export declare const pullRequestMetadataSchema: z.ZodObject<{
     base: string;
     ref: string;
     commits: {
-        url: string;
         sha: string;
+        url: string;
         message: {
             title: string;
             body: string;
@@ -166,8 +166,8 @@ export declare const pullRequestMetadataSchema: z.ZodObject<{
     base: string;
     ref: string;
     commits: {
-        url: string;
         sha: string;
+        url: string;
         message: {
             title: string;
             body: string;

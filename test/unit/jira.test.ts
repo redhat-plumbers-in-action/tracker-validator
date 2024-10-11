@@ -32,10 +32,12 @@ describe('test Jira API', () => {
     expect(issue).toMatchInlineSnapshot(`
       {
         "component": "systemd",
-        "fixVersions": [],
+        "fixVersions": [
+          "rhel-10.0.beta",
+        ],
         "id": "RHEL-678",
         "product": "rhel-10.0",
-        "status": "New",
+        "status": "Release Pending",
         "summary": "[spec] [RHEL 10] use during build generated systemd-user pam config like in Fedora",
       }
     `);
@@ -45,7 +47,7 @@ describe('test Jira API', () => {
     const version = await context.jira.getVersion();
 
     expect(version).toBeDefined();
-    expect(version).toMatchInlineSnapshot(`"9.12.7"`);
+    expect(version).toMatchInlineSnapshot(`"9.12.12"`);
 
     const issueId = rhel10IssueID;
     const issue = await context.jira.getIssueDetails(issueId);
@@ -54,10 +56,12 @@ describe('test Jira API', () => {
     expect(issue).toMatchInlineSnapshot(`
       {
         "component": "systemd",
-        "fixVersions": [],
+        "fixVersions": [
+          "rhel-10.0.beta",
+        ],
         "id": "RHEL-678",
         "product": "rhel-10.0",
-        "status": "New",
+        "status": "Release Pending",
         "summary": "[spec] [RHEL 10] use during build generated systemd-user pam config like in Fedora",
       }
     `);
