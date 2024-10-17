@@ -6,6 +6,10 @@ import { raise } from './util';
 import { RemoteIssueLink } from 'jira.js/out/version2/models';
 
 export class Jira implements Adapter<Version2Client> {
+  readonly customFields = {
+    severity: 'customfield_12316142',
+  };
+
   readonly api: Version2Client;
   issueDetails: IssueDetails | undefined;
 
@@ -35,6 +39,10 @@ export class Jira implements Adapter<Version2Client> {
       summary: response.fields.summary,
       fixVersions: response.fields.fixVersions.map(version => version.name),
       status: response.fields.status.name ?? '',
+      severity:
+        response.fields[this.customFields.severity] != null
+          ? response.fields[this.customFields.severity].value
+          : undefined,
     };
 
     return this.issueDetails;
@@ -78,6 +86,16 @@ export class Jira implements Adapter<Version2Client> {
     }
 
     return products.includes(this.issueDetails.product);
+  }
+
+  isSeveritySet(): boolean {
+    if (this.issueDetails === undefined) {
+      raise(
+        'Jira.isMatchingProduct(): missing issueDetails, call Jira.getIssueDetails() first.'
+      );
+    }
+
+    return !!this.issueDetails.severity;
   }
 
   isMatchingComponent(component: string): boolean {

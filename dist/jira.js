@@ -4,6 +4,9 @@ import { raise } from './util';
 export class Jira {
     constructor(instance, apiToken) {
         this.instance = instance;
+        this.customFields = {
+            severity: 'customfield_12316142',
+        };
         this.tips = {
             approval: 'Jira is approved if it has set Fix Version/s',
         };
@@ -24,6 +27,9 @@ export class Jira {
             summary: response.fields.summary,
             fixVersions: response.fields.fixVersions.map(version => version.name),
             status: (_d = response.fields.status.name) !== null && _d !== void 0 ? _d : '',
+            severity: response.fields[this.customFields.severity] != null
+                ? response.fields[this.customFields.severity].value
+                : undefined,
         };
         return this.issueDetails;
     }
@@ -53,6 +59,12 @@ export class Jira {
             raise('Jira.isMatchingProduct(): missing issueDetails, call Jira.getIssueDetails() first.');
         }
         return products.includes(this.issueDetails.product);
+    }
+    isSeveritySet() {
+        if (this.issueDetails === undefined) {
+            raise('Jira.isMatchingProduct(): missing issueDetails, call Jira.getIssueDetails() first.');
+        }
+        return !!this.issueDetails.severity;
     }
     isMatchingComponent(component) {
         if (this.issueDetails === undefined) {

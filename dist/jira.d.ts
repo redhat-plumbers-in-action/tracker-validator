@@ -2,6 +2,9 @@ import { Version2Client } from 'jira.js';
 import { Adapter, IssueDetails } from './controller';
 export declare class Jira implements Adapter<Version2Client> {
     readonly instance: string;
+    readonly customFields: {
+        severity: string;
+    };
     readonly api: Version2Client;
     issueDetails: IssueDetails | undefined;
     readonly tips: {
@@ -13,6 +16,7 @@ export declare class Jira implements Adapter<Version2Client> {
     getUrl(): string;
     getMarkdownUrl(): string;
     isMatchingProduct(products?: string[]): boolean;
+    isSeveritySet(): boolean;
     isMatchingComponent(component: string): boolean;
     isApproved(): boolean;
     changeState(): Promise<string>;

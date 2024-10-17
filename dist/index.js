@@ -92622,7 +92622,15 @@ class Bugzilla {
         var _a, _b;
         const response = (await this.api
             .getBugs([id])
-            .include(['id', 'summary', 'product', 'component', 'flags', 'status']))[0];
+            .include([
+            'id',
+            'summary',
+            'product',
+            'component',
+            'flags',
+            'status',
+            'severity',
+        ]))[0];
         this.issueDetails = {
             id: response.id.toString(),
             summary: response.summary,
@@ -92638,6 +92646,7 @@ class Bugzilla {
                 };
             })) !== null && _b !== void 0 ? _b : [],
             status: response.status,
+            severity: response.severity,
         };
         return this.issueDetails;
     }
@@ -92665,6 +92674,12 @@ class Bugzilla {
             (0,util/* raise */.xl)('Bugzilla.isMatchingProduct(): missing issueDetails, call Bugzilla.getIssueDetails() first.');
         }
         return products.includes(this.issueDetails.product);
+    }
+    isSeveritySet() {
+        if (this.issueDetails === undefined) {
+            (0,util/* raise */.xl)('Bugzilla.isSeveritySet(): missing issueDetails, call Bugzilla.getIssueDetails() first.');
+        }
+        return !!this.issueDetails.severity;
     }
     isMatchingComponent(component) {
         if (this.issueDetails === undefined) {
@@ -92734,6 +92749,7 @@ class Bugzilla {
 
 const configLabelsSchema = lib.z.object({
     'missing-tracker': lib.z.string().min(1),
+    'missing-severity': lib.z.string().min(1),
     'invalid-product': lib.z.string().min(1),
     'invalid-component': lib.z.string().min(1),
     unapproved: lib.z.string().min(1),
@@ -92770,6 +92786,7 @@ class Config {
 Config.defaults = {
     labels: {
         'missing-tracker': 'tracker/missing',
+        'missing-severity': 'tracker/missing-severity',
         'invalid-product': 'tracker/invalid-product',
         'invalid-component': 'tracker/invalid-component',
         unapproved: 'tracker/unapproved',
@@ -92793,6 +92810,9 @@ var out = __nccwpck_require__(7450);
 class Jira {
     constructor(instance, apiToken) {
         this.instance = instance;
+        this.customFields = {
+            severity: 'customfield_12316142',
+        };
         this.tips = {
             approval: 'Jira is approved if it has set Fix Version/s',
         };
@@ -92813,6 +92833,9 @@ class Jira {
             summary: response.fields.summary,
             fixVersions: response.fields.fixVersions.map(version => version.name),
             status: (_d = response.fields.status.name) !== null && _d !== void 0 ? _d : '',
+            severity: response.fields[this.customFields.severity] != null
+                ? response.fields[this.customFields.severity].value
+                : undefined,
         };
         return this.issueDetails;
     }
@@ -92842,6 +92865,12 @@ class Jira {
             (0,util/* raise */.xl)('Jira.isMatchingProduct(): missing issueDetails, call Jira.getIssueDetails() first.');
         }
         return products.includes(this.issueDetails.product);
+    }
+    isSeveritySet() {
+        if (this.issueDetails === undefined) {
+            (0,util/* raise */.xl)('Jira.isMatchingProduct(): missing issueDetails, call Jira.getIssueDetails() first.');
+        }
+        return !!this.issueDetails.severity;
     }
     isMatchingComponent(component) {
         if (this.issueDetails === undefined) {
@@ -93002,6 +93031,17 @@ async function action(octokit, prMetadata) {
             (0,util/* removeLabel */.tA)(octokit, prMetadata.number, config.labels.unapproved);
         }
         message.push(`🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} has been approved`);
+    }
+    const isSeveritySet = trackerController.adapter.isSeveritySet();
+    if (!isSeveritySet) {
+        labels.add.push(config.labels['missing-severity']);
+        err.push(`🔴 Tracker ${trackerController.adapter.getMarkdownUrl()} is missing severity`);
+    }
+    else {
+        if (labelsFromPR.includes(config.labels['missing-severity'])) {
+            (0,util/* removeLabel */.tA)(octokit, prMetadata.number, config.labels['missing-severity']);
+        }
+        message.push(`🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} has set severity`);
     }
     if (isMatchingProduct && isMatchingComponent) {
         const linkMessage = await trackerController.adapter.addLink('https://github.com/', `${github.context.repo.owner}/${github.context.repo.repo}/pull/${prMetadata.number}`);

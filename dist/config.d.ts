@@ -4,6 +4,7 @@ export declare class Config {
     static readonly defaults: {
         labels: {
             'missing-tracker': string;
+            'missing-severity': string;
             'invalid-product': string;
             'invalid-component': string;
             unapproved: string;

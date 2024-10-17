@@ -37,6 +37,7 @@ describe('test Jira API', () => {
         ],
         "id": "RHEL-678",
         "product": "rhel-10.0",
+        "severity": undefined,
         "status": "Release Pending",
         "summary": "[spec] [RHEL 10] use during build generated systemd-user pam config like in Fedora",
       }
@@ -61,6 +62,7 @@ describe('test Jira API', () => {
         ],
         "id": "RHEL-678",
         "product": "rhel-10.0",
+        "severity": undefined,
         "status": "Release Pending",
         "summary": "[spec] [RHEL 10] use during build generated systemd-user pam config like in Fedora",
       }
@@ -75,6 +77,7 @@ describe('test Jira API', () => {
       product: 'Red Hat Enterprise Linux 9',
       summary: 'RHEL 9 bug',
       status: 'New',
+      severity: undefined,
     };
 
     expect(context.jira.getUrl()).toEqual(
@@ -90,6 +93,7 @@ describe('test Jira API', () => {
       product: 'Red Hat Enterprise Linux 9',
       summary: 'RHEL 9 bug',
       status: 'New',
+      severity: undefined,
     };
 
     expect(context.jira.getMarkdownUrl()).toEqual(
@@ -105,6 +109,7 @@ describe('test Jira API', () => {
       product: 'Red Hat Enterprise Linux 9',
       summary: 'RHEL 9 bug',
       status: 'New',
+      severity: undefined,
     };
     context.jira.issueDetails = issue;
 
@@ -122,6 +127,7 @@ describe('test Jira API', () => {
       product: 'Fedora',
       summary: 'Fedora Bug',
       status: 'New',
+      severity: undefined,
     };
     context.jira.issueDetails = issue;
 
@@ -145,6 +151,7 @@ describe('test Jira API', () => {
       product: 'Fedora',
       summary: 'Fedora Bug',
       status: 'New',
+      severity: undefined,
     };
     context.jira.issueDetails = issue;
 

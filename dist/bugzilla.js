@@ -15,7 +15,15 @@ export class Bugzilla {
         var _a, _b;
         const response = (await this.api
             .getBugs([id])
-            .include(['id', 'summary', 'product', 'component', 'flags', 'status']))[0];
+            .include([
+            'id',
+            'summary',
+            'product',
+            'component',
+            'flags',
+            'status',
+            'severity',
+        ]))[0];
         this.issueDetails = {
             id: response.id.toString(),
             summary: response.summary,
@@ -31,6 +39,7 @@ export class Bugzilla {
                 };
             })) !== null && _b !== void 0 ? _b : [],
             status: response.status,
+            severity: response.severity,
         };
         return this.issueDetails;
     }
@@ -58,6 +67,12 @@ export class Bugzilla {
             raise('Bugzilla.isMatchingProduct(): missing issueDetails, call Bugzilla.getIssueDetails() first.');
         }
         return products.includes(this.issueDetails.product);
+    }
+    isSeveritySet() {
+        if (this.issueDetails === undefined) {
+            raise('Bugzilla.isSeveritySet(): missing issueDetails, call Bugzilla.getIssueDetails() first.');
+        }
+        return !!this.issueDetails.severity;
     }
     isMatchingComponent(component) {
         if (this.issueDetails === undefined) {

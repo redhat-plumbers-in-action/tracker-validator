@@ -24,7 +24,15 @@ export class Bugzilla implements Adapter<BugzillaAPI> {
     const response = (
       await this.api
         .getBugs([id])
-        .include(['id', 'summary', 'product', 'component', 'flags', 'status'])
+        .include([
+          'id',
+          'summary',
+          'product',
+          'component',
+          'flags',
+          'status',
+          'severity',
+        ])
     )[0];
 
     this.issueDetails = {
@@ -42,6 +50,7 @@ export class Bugzilla implements Adapter<BugzillaAPI> {
           };
         }) ?? [],
       status: response.status,
+      severity: response.severity,
     };
 
     return this.issueDetails;
@@ -84,6 +93,16 @@ export class Bugzilla implements Adapter<BugzillaAPI> {
     }
 
     return products.includes(this.issueDetails.product);
+  }
+
+  isSeveritySet(): boolean {
+    if (this.issueDetails === undefined) {
+      raise(
+        'Bugzilla.isSeveritySet(): missing issueDetails, call Bugzilla.getIssueDetails() first.'
+      );
+    }
+
+    return !!this.issueDetails.severity;
   }
 
   isMatchingComponent(component: string): boolean {
