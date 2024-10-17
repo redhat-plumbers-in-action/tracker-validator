@@ -11,6 +11,7 @@ export interface Adapter<T> {
     getUrl(): string;
     getMarkdownUrl(): string;
     isMatchingProduct(products: string[]): boolean;
+    isSeveritySet(): boolean;
     isMatchingComponent(component: string): boolean;
     isApproved(): boolean;
     changeState(): Promise<string>;
@@ -27,6 +28,7 @@ export type IssueDetails = {
     flags?: Flag[];
     fixVersions?: string[];
     status: string;
+    severity: string | undefined;
 };
 export type Flag = {
     name: string;

@@ -14,6 +14,7 @@ export declare class Bugzilla implements Adapter<BugzillaAPI> {
     getUrl(): string;
     getMarkdownUrl(): string;
     isMatchingProduct(products?: string[]): boolean;
+    isSeveritySet(): boolean;
     isMatchingComponent(component: string): boolean;
     isApproved(): boolean;
     changeState(): Promise<string>;

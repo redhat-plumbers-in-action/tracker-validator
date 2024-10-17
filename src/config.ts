@@ -8,6 +8,7 @@ export class Config {
   static readonly defaults = {
     labels: {
       'missing-tracker': 'tracker/missing',
+      'missing-severity': 'tracker/missing-severity',
       'invalid-product': 'tracker/invalid-product',
       'invalid-component': 'tracker/invalid-component',
       unapproved: 'tracker/unapproved',

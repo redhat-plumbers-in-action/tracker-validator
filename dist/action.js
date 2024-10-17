@@ -89,6 +89,17 @@ async function action(octokit, prMetadata) {
         }
         message.push(`🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} has been approved`);
     }
+    const isSeveritySet = trackerController.adapter.isSeveritySet();
+    if (!isSeveritySet) {
+        labels.add.push(config.labels['missing-severity']);
+        err.push(`🔴 Tracker ${trackerController.adapter.getMarkdownUrl()} is missing severity`);
+    }
+    else {
+        if (labelsFromPR.includes(config.labels['missing-severity'])) {
+            removeLabel(octokit, prMetadata.number, config.labels['missing-severity']);
+        }
+        message.push(`🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} has set severity`);
+    }
     if (isMatchingProduct && isMatchingComponent) {
         const linkMessage = await trackerController.adapter.addLink('https://github.com/', `${context.repo.owner}/${context.repo.repo}/pull/${prMetadata.number}`);
         notice(`🔗 ${linkMessage}`);
