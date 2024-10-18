@@ -93187,7 +93187,7 @@ async function action(octokit, prMetadata) {
         }
         message.push(`🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} has set severity`);
     }
-    if (isMatchingProduct && isMatchingComponent) {
+    if (isMatchingProduct && isMatchingComponent && isSeveritySet) {
         const linkMessage = await trackerController.adapter.addLink('https://github.com/', `${github.context.repo.owner}/${github.context.repo.repo}/pull/${prMetadata.number}`);
         (0,core.notice)(`🔗 ${linkMessage}`);
         const stateMessage = await trackerController.adapter.changeState();
