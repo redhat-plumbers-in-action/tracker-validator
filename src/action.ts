@@ -191,7 +191,7 @@ async function action(
     );
   }
 
-  if (isMatchingProduct && isMatchingComponent) {
+  if (isMatchingProduct && isMatchingComponent && isSeveritySet) {
     const linkMessage = await trackerController.adapter.addLink(
       'https://github.com/',
       `${context.repo.owner}/${context.repo.repo}/pull/${prMetadata.number}`
