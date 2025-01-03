@@ -37,6 +37,7 @@ export class Bugzilla implements Adapter<BugzillaAPI> {
 
     this.issueDetails = {
       id: response.id.toString(),
+      type: undefined,
       summary: response.summary,
       component: Array.isArray(response.component)
         ? response.component[0]

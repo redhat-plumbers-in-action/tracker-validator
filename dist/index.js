@@ -92773,6 +92773,7 @@ class Bugzilla {
         ]))[0];
         this.issueDetails = {
             id: response.id.toString(),
+            type: undefined,
             summary: response.summary,
             component: Array.isArray(response.component)
                 ? response.component[0]
@@ -92972,6 +92973,7 @@ class Jira {
         const response = await this.api.issues.getIssue({ issueIdOrKey: id });
         this.issueDetails = {
             id: response.key,
+            type: response.fields.issuetype.name,
             product: (_b = (_a = response.fields.versions[0]) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : '',
             component: (_c = response.fields.components[0].name) !== null && _c !== void 0 ? _c : '',
             summary: response.fields.summary,
@@ -93094,6 +93096,7 @@ class Jira {
 
 
 async function action(octokit, prMetadata) {
+    var _a;
     const trackerType = (0,core.getInput)('tracker-type', { required: true });
     const config = await Config.getConfig(octokit);
     let trackerController;
@@ -93177,7 +93180,11 @@ async function action(octokit, prMetadata) {
         message.push(`🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} has been approved`);
     }
     const isSeveritySet = trackerController.adapter.isSeveritySet();
-    if (!isSeveritySet) {
+    if (!isSeveritySet &&
+        ((_a = trackerController.adapter.issueDetails) === null || _a === void 0 ? void 0 : _a.type) === 'Story') {
+        message.push(`🟠 Tracker ${trackerController.adapter.getMarkdownUrl()} is missing severity, but it is of type Story`);
+    }
+    else if (!isSeveritySet) {
         labels.add.push(config.labels['missing-severity']);
         err.push(`🔴 Tracker ${trackerController.adapter.getMarkdownUrl()} is missing severity`);
     }

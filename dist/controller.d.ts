@@ -6,6 +6,7 @@ export interface Adapter<T> {
     readonly api: T;
     readonly instance: string;
     readonly tips: Tips;
+    readonly issueDetails: IssueDetails | undefined;
     getIssueDetails(id: string): Promise<IssueDetails>;
     getVersion(): Promise<string>;
     getUrl(): string;
@@ -22,6 +23,7 @@ export type Tips = {
 };
 export type IssueDetails = {
     id: string;
+    type: string | undefined;
     product: string;
     component: string;
     summary: string;
