@@ -7,6 +7,7 @@ import { Controller } from './controller';
 import { Jira } from './jira';
 import { getFailedMessage, getSuccessMessage, getTipMessage, raise, removeLabel, setLabels, setTitle, } from './util';
 async function action(octokit, prMetadata) {
+    var _a;
     const trackerType = getInput('tracker-type', { required: true });
     const config = await Config.getConfig(octokit);
     let trackerController;
@@ -90,7 +91,11 @@ async function action(octokit, prMetadata) {
         message.push(`🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} has been approved`);
     }
     const isSeveritySet = trackerController.adapter.isSeveritySet();
-    if (!isSeveritySet) {
+    if (!isSeveritySet &&
+        ((_a = trackerController.adapter.issueDetails) === null || _a === void 0 ? void 0 : _a.type) === 'Story') {
+        message.push(`🟠 Tracker ${trackerController.adapter.getMarkdownUrl()} is missing severity, but it is of type Story`);
+    }
+    else if (!isSeveritySet) {
         labels.add.push(config.labels['missing-severity']);
         err.push(`🔴 Tracker ${trackerController.adapter.getMarkdownUrl()} is missing severity`);
     }

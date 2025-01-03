@@ -173,7 +173,14 @@ async function action(
   }
 
   const isSeveritySet = trackerController.adapter.isSeveritySet();
-  if (!isSeveritySet) {
+  if (
+    !isSeveritySet &&
+    trackerController.adapter.issueDetails?.type === 'Story'
+  ) {
+    message.push(
+      `🟠 Tracker ${trackerController.adapter.getMarkdownUrl()} is missing severity, but it is of type Story`
+    );
+  } else if (!isSeveritySet) {
     labels.add.push(config.labels['missing-severity']);
     err.push(
       `🔴 Tracker ${trackerController.adapter.getMarkdownUrl()} is missing severity`

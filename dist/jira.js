@@ -22,6 +22,7 @@ export class Jira {
         const response = await this.api.issues.getIssue({ issueIdOrKey: id });
         this.issueDetails = {
             id: response.key,
+            type: response.fields.issuetype.name,
             product: (_b = (_a = response.fields.versions[0]) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : '',
             component: (_c = response.fields.components[0].name) !== null && _c !== void 0 ? _c : '',
             summary: response.fields.summary,

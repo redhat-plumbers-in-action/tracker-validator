@@ -34,6 +34,7 @@ export class Jira implements Adapter<Version2Client> {
 
     this.issueDetails = {
       id: response.key,
+      type: response.fields.issuetype.name,
       product: response.fields.versions[0]?.name ?? '',
       component: response.fields.components[0].name ?? '',
       summary: response.fields.summary,
