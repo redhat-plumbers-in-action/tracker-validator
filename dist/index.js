@@ -100078,7 +100078,7 @@ async function action(octokit, prMetadata) {
             !labelsFromPR.includes(prMetadata.base)) {
             labels.add.push(prMetadata.base);
         }
-        message.push(`🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} has set desired product: \`${issueDetails.product}\``);
+        message.push(`🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} has set desired product: \`${issueDetails.fixVersions ? issueDetails.fixVersions.join(', ') : ''}\``);
     }
     const component = (0,core.getInput)('component', { required: true });
     const isMatchingComponent = trackerController.adapter.isMatchingComponent(component);
