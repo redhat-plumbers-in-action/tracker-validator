@@ -99931,7 +99931,10 @@ class Jira {
         if (this.issueDetails === undefined) {
             (0,util/* raise */.xl)('Jira.isMatchingProduct(): missing issueDetails, call Jira.getIssueDetails() first.');
         }
-        return products.includes(this.issueDetails.product);
+        if (this.issueDetails.fixVersions === undefined) {
+            return false;
+        }
+        return this.issueDetails.fixVersions.some(version => products.includes(version));
     }
     isSeveritySet() {
         if (this.issueDetails === undefined) {

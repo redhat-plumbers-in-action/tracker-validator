@@ -86,7 +86,13 @@ export class Jira implements Adapter<Version2Client> {
       );
     }
 
-    return products.includes(this.issueDetails.product);
+    if (this.issueDetails.fixVersions === undefined) {
+      return false;
+    }
+
+    return this.issueDetails.fixVersions.some(version =>
+      products.includes(version)
+    );
   }
 
   isSeveritySet(): boolean {
