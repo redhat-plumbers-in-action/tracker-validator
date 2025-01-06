@@ -128,7 +128,7 @@ async function action(
 
     message.push(
       `🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} has set desired product: \`${
-        issueDetails.product
+        issueDetails.fixVersions ? issueDetails.fixVersions.join(', ') : ''
       }\``
     );
   }
