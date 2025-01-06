@@ -53,7 +53,7 @@ async function action(octokit, prMetadata) {
     const isMatchingProduct = trackerController.adapter.isMatchingProduct(config.products);
     if (!isMatchingProduct) {
         labels.add.push(config.labels['invalid-product']);
-        err.push(`🔴 Tracker ${trackerController.adapter.getMarkdownUrl()} has product \`${issueDetails.product}\` but desired product is one of \`${config.products}\``);
+        err.push(`🔴 Tracker ${trackerController.adapter.getMarkdownUrl()} has product \`${issueDetails.fixVersions ? issueDetails.fixVersions.join(', ') : ''}\` but desired product is one of \`${config.products}\``);
     }
     else {
         if (labelsFromPR.includes(config.labels['invalid-product'])) {

@@ -109,7 +109,7 @@ async function action(
     labels.add.push(config.labels['invalid-product']);
     err.push(
       `🔴 Tracker ${trackerController.adapter.getMarkdownUrl()} has product \`${
-        issueDetails.product
+        issueDetails.fixVersions ? issueDetails.fixVersions.join(', ') : ''
       }\` but desired product is one of \`${config.products}\``
     );
   } else {
