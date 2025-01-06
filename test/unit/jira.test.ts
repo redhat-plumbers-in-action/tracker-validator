@@ -73,6 +73,7 @@ describe('test Jira API', () => {
 
   test<TestContext>('getUrl()', context => {
     context.jira.issueDetails = {
+      type: 'Story',
       component: 'systemd',
       fixVersions: [],
       id: '123456789',
@@ -89,6 +90,7 @@ describe('test Jira API', () => {
 
   test<TestContext>('getMarkdownUrl()', context => {
     context.jira.issueDetails = {
+      type: 'Story',
       component: 'systemd',
       fixVersions: [],
       id: '123456789',
@@ -105,8 +107,9 @@ describe('test Jira API', () => {
 
   test<TestContext>('isMatchingProduct()', context => {
     const issue: IssueDetails = {
+      type: 'Story',
       component: 'systemd',
-      fixVersions: [],
+      fixVersions: ['Red Hat Enterprise Linux 9'],
       id: '123456789',
       product: 'Red Hat Enterprise Linux 9',
       summary: 'RHEL 9 bug',
@@ -123,6 +126,7 @@ describe('test Jira API', () => {
 
   test<TestContext>('isMatchingComponent()', context => {
     const issue: IssueDetails = {
+      type: 'Story',
       component: 'systemd',
       fixVersions: [],
       id: '123456789',
@@ -147,6 +151,7 @@ describe('test Jira API', () => {
       { name: 'release', status: '+' },
     ];
     let issue: IssueDetails = {
+      type: 'Story',
       component: 'systemd',
       flags: flags,
       id: '123456789',
