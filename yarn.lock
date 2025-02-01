@@ -1489,14 +1489,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"form-data@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "form-data@npm:4.0.1"
-  dependencies:
-    asynckit: "npm:^0.4.0"
-    combined-stream: "npm:^1.0.8"
-    mime-types: "npm:^2.1.12"
-  checksum: 10c0/bb102d570be8592c23f4ea72d7df9daa50c7792eb0cf1c5d7e506c1706e7426a4e4ae48a35b109e91c85f1c0ec63774a21ae252b66f4eb981cb8efef7d0463c8
+"formdata-node@npm:^6.0.3":
+  version: 6.0.3
+  resolution: "formdata-node@npm:6.0.3"
+  checksum: 10c0/9b8ada280c7b0c7314bed57fd50b3562f8825bd3ede6f6231b1bc7683b649e7f3ffb7b0f13d8e9e6cae8042ea21eaf497a7c676d2fe6dc63daefefaea4838240
   languageName: node
   linkType: hard
 
@@ -1751,14 +1747,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jira.js@npm:4.0.3":
-  version: 4.0.3
-  resolution: "jira.js@npm:4.0.3"
+"jira.js@npm:4.0.6":
+  version: 4.0.6
+  resolution: "jira.js@npm:4.0.6"
   dependencies:
     axios: "npm:^1.7.9"
-    form-data: "npm:^4.0.1"
+    formdata-node: "npm:^6.0.3"
+    mime: "npm:^4.0.6"
     tslib: "npm:^2.8.1"
-  checksum: 10c0/158afec47f8991b82d62b36e96cabec16be5b729b16a1cac7183c7e349372f4dc6a4062fe7b78dcee9d99cf1375a35341acdc216bc79b32156ffabaea7e30979
+  checksum: 10c0/65fb86b704f70c568b3bf0e9e7d9b20e520fbfece78ad94313deac80ec8428e54d5130166fe1411a349277fe70694f9500f83eefbea28e9193a9f689a9b88a98
   languageName: node
   linkType: hard
 
@@ -1870,6 +1867,15 @@ __metadata:
   dependencies:
     mime-db: "npm:1.52.0"
   checksum: 10c0/82fb07ec56d8ff1fc999a84f2f217aa46cb6ed1033fefaabd5785b9a974ed225c90dc72fff460259e66b95b73648596dbcc50d51ed69cdf464af2d237d3149b2
+  languageName: node
+  linkType: hard
+
+"mime@npm:^4.0.6":
+  version: 4.0.6
+  resolution: "mime@npm:4.0.6"
+  bin:
+    mime: bin/cli.js
+  checksum: 10c0/1797b1c6da4cdb817fc18a4b8d99d6034885946f3d3680c2e4eb18bf19d4a64b42559f1eae0d1607e216f584311f9f806b5bfa1426baebeae4807bec5e14188a
   languageName: node
   linkType: hard
 
@@ -2506,7 +2512,7 @@ __metadata:
     bugzilla: "npm:3.1.4"
     deepmerge: "npm:^4.3.1"
     dotenv: "npm:16.4.7"
-    jira.js: "npm:4.0.3"
+    jira.js: "npm:4.0.6"
     node-fetch: "npm:3.3.2"
     prettier: "npm:3.4.2"
     ts-node: "npm:10.9.2"
