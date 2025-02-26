@@ -2290,7 +2290,7 @@ __export(dist_src_exports, {
 module.exports = __toCommonJS(dist_src_exports);
 
 // pkg/dist-src/version.js
-var VERSION = "9.2.1";
+var VERSION = "9.2.2";
 
 // pkg/dist-src/normalize-paginated-list-response.js
 function normalizePaginatedListResponse(response) {
@@ -2338,7 +2338,7 @@ function iterator(octokit, route, parameters) {
           const response = await requestMethod({ method, url, headers });
           const normalizedResponse = normalizePaginatedListResponse(response);
           url = ((normalizedResponse.headers.link || "").match(
-            /<([^>]+)>;\s*rel="next"/
+            /<([^<>]+)>;\s*rel="next"/
           ) || [])[1];
           return { value: normalizedResponse };
         } catch (error) {
@@ -5479,7 +5479,7 @@ class HttpClient {
         }
         const usingSsl = parsedUrl.protocol === 'https:';
         proxyAgent = new undici_1.ProxyAgent(Object.assign({ uri: proxyUrl.href, pipelining: !this._keepAlive ? 0 : 1 }, ((proxyUrl.username || proxyUrl.password) && {
-            token: `${proxyUrl.username}:${proxyUrl.password}`
+            token: `Basic ${Buffer.from(`${proxyUrl.username}:${proxyUrl.password}`).toString('base64')}`
         })));
         this._proxyAgentDispatcher = proxyAgent;
         if (usingSsl && this._ignoreSslError) {
@@ -5592,11 +5592,11 @@ function getProxyUrl(reqUrl) {
     })();
     if (proxyVar) {
         try {
-            return new URL(proxyVar);
+            return new DecodedURL(proxyVar);
         }
         catch (_a) {
             if (!proxyVar.startsWith('http://') && !proxyVar.startsWith('https://'))
-                return new URL(`http://${proxyVar}`);
+                return new DecodedURL(`http://${proxyVar}`);
         }
     }
     else {
@@ -5654,6 +5654,19 @@ function isLoopbackAddress(host) {
         hostLower.startsWith('127.') ||
         hostLower.startsWith('[::1]') ||
         hostLower.startsWith('[0:0:0:0:0:0:0:1]'));
+}
+class DecodedURL extends URL {
+    constructor(url, base) {
+        super(url, base);
+        this._decodedUsername = decodeURIComponent(super.username);
+        this._decodedPassword = decodeURIComponent(super.password);
+    }
+    get username() {
+        return this._decodedUsername;
+    }
+    get password() {
+        return this._decodedPassword;
+    }
 }
 //# sourceMappingURL=proxy.js.map
 
@@ -6270,7 +6283,7 @@ module.exports = __toCommonJS(dist_src_exports);
 var import_universal_user_agent = __nccwpck_require__(33843);
 
 // pkg/dist-src/version.js
-var VERSION = "9.0.5";
+var VERSION = "9.0.6";
 
 // pkg/dist-src/defaults.js
 var userAgent = `octokit-endpoint.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`;
@@ -6375,9 +6388,9 @@ function addQueryParameters(url, parameters) {
 }
 
 // pkg/dist-src/util/extract-url-variable-names.js
-var urlVariableRegex = /\{[^}]+\}/g;
+var urlVariableRegex = /\{[^{}}]+\}/g;
 function removeNonChars(variableName) {
-  return variableName.replace(/^\W+|\W+$/g, "").split(/,/);
+  return variableName.replace(/(?:^\W+)|(?:(?<!\W)\W+$)/g, "").split(/,/);
 }
 function extractUrlVariableNames(url) {
   const matches = url.match(urlVariableRegex);
@@ -6563,7 +6576,7 @@ function parse(options) {
     }
     if (url.endsWith("/graphql")) {
       if (options.mediaType.previews?.length) {
-        const previewsFromAcceptHeader = headers.accept.match(/[\w-]+(?=-preview)/g) || [];
+        const previewsFromAcceptHeader = headers.accept.match(/(?<![\w-])[\w-]+(?=-preview)/g) || [];
         headers.accept = previewsFromAcceptHeader.concat(options.mediaType.previews).map((preview) => {
           const format = options.mediaType.format ? `.${options.mediaType.format}` : "+json";
           return `application/vnd.github.${preview}-preview${format}`;
@@ -6643,18 +6656,18 @@ var __copyProps = (to, from, except, desc) => {
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // pkg/dist-src/index.js
-var dist_src_exports = {};
-__export(dist_src_exports, {
+var index_exports = {};
+__export(index_exports, {
   GraphqlResponseError: () => GraphqlResponseError,
   graphql: () => graphql2,
   withCustomRequest: () => withCustomRequest
 });
-module.exports = __toCommonJS(dist_src_exports);
+module.exports = __toCommonJS(index_exports);
 var import_request3 = __nccwpck_require__(66255);
 var import_universal_user_agent = __nccwpck_require__(33843);
 
 // pkg/dist-src/version.js
-var VERSION = "7.1.0";
+var VERSION = "7.1.1";
 
 // pkg/dist-src/with-defaults.js
 var import_request2 = __nccwpck_require__(66255);
@@ -6702,8 +6715,7 @@ function graphql(request2, query, options) {
       );
     }
     for (const key in options) {
-      if (!FORBIDDEN_VARIABLE_OPTIONS.includes(key))
-        continue;
+      if (!FORBIDDEN_VARIABLE_OPTIONS.includes(key)) continue;
       return Promise.reject(
         new Error(
           `[@octokit/graphql] "${key}" cannot be used as variable name`
@@ -6839,7 +6851,7 @@ var RequestError = class extends Error {
     if (options.request.headers.authorization) {
       requestCopy.headers = Object.assign({}, options.request.headers, {
         authorization: options.request.headers.authorization.replace(
-          / .*$/,
+          /(?<! ) .*$/,
           " [REDACTED]"
         )
       });
@@ -6906,7 +6918,7 @@ var import_endpoint = __nccwpck_require__(54471);
 var import_universal_user_agent = __nccwpck_require__(33843);
 
 // pkg/dist-src/version.js
-var VERSION = "8.4.0";
+var VERSION = "8.4.1";
 
 // pkg/dist-src/is-plain-object.js
 function isPlainObject(value) {
@@ -6965,7 +6977,7 @@ function fetchWrapper(requestOptions) {
       headers[keyAndValue[0]] = keyAndValue[1];
     }
     if ("deprecation" in headers) {
-      const matches = headers.link && headers.link.match(/<([^>]+)>; rel="deprecation"/);
+      const matches = headers.link && headers.link.match(/<([^<>]+)>; rel="deprecation"/);
       const deprecationLink = matches && matches.pop();
       log.warn(
         `[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${headers.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`
@@ -9255,6 +9267,78 @@ function removeHook(state, name, method) {
 
 /***/ }),
 
+/***/ 22639:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+var bind = __nccwpck_require__(37564);
+
+var $apply = __nccwpck_require__(33945);
+var $call = __nccwpck_require__(88093);
+var $reflectApply = __nccwpck_require__(31330);
+
+/** @type {import('./actualApply')} */
+module.exports = $reflectApply || bind.call($call, $apply);
+
+
+/***/ }),
+
+/***/ 33945:
+/***/ ((module) => {
+
+
+
+/** @type {import('./functionApply')} */
+module.exports = Function.prototype.apply;
+
+
+/***/ }),
+
+/***/ 88093:
+/***/ ((module) => {
+
+
+
+/** @type {import('./functionCall')} */
+module.exports = Function.prototype.call;
+
+
+/***/ }),
+
+/***/ 88705:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+var bind = __nccwpck_require__(37564);
+var $TypeError = __nccwpck_require__(73314);
+
+var $call = __nccwpck_require__(88093);
+var $actualApply = __nccwpck_require__(22639);
+
+/** @type {(args: [Function, thisArg?: unknown, ...args: unknown[]]) => Function} TODO FIXME, find a way to use import('.') */
+module.exports = function callBindBasic(args) {
+	if (args.length < 1 || typeof args[0] !== 'function') {
+		throw new $TypeError('a function is required');
+	}
+	return $actualApply(bind, $call, args);
+};
+
+
+/***/ }),
+
+/***/ 31330:
+/***/ ((module) => {
+
+
+
+/** @type {import('./reflectApply')} */
+module.exports = typeof Reflect !== 'undefined' && Reflect && Reflect.apply;
+
+
+/***/ }),
+
 /***/ 35630:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -9600,14 +9684,17 @@ function useColors() {
 		return false;
 	}
 
+	let m;
+
 	// Is webkit? http://stackoverflow.com/a/16459606/376773
 	// document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
+	// eslint-disable-next-line no-return-assign
 	return (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance) ||
 		// Is firebug? http://stackoverflow.com/a/398120/376773
 		(typeof window !== 'undefined' && window.console && (window.console.firebug || (window.console.exception && window.console.table))) ||
 		// Is firefox >= v31?
 		// https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-		(typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
+		(typeof navigator !== 'undefined' && navigator.userAgent && (m = navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/)) && parseInt(m[1], 10) >= 31) ||
 		// Double check webkit in userAgent just in case we are in a worker
 		(typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
 }
@@ -9917,24 +10004,62 @@ function setup(env) {
 		createDebug.names = [];
 		createDebug.skips = [];
 
-		let i;
-		const split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
-		const len = split.length;
+		const split = (typeof namespaces === 'string' ? namespaces : '')
+			.trim()
+			.replace(' ', ',')
+			.split(',')
+			.filter(Boolean);
 
-		for (i = 0; i < len; i++) {
-			if (!split[i]) {
-				// ignore empty strings
-				continue;
-			}
-
-			namespaces = split[i].replace(/\*/g, '.*?');
-
-			if (namespaces[0] === '-') {
-				createDebug.skips.push(new RegExp('^' + namespaces.slice(1) + '$'));
+		for (const ns of split) {
+			if (ns[0] === '-') {
+				createDebug.skips.push(ns.slice(1));
 			} else {
-				createDebug.names.push(new RegExp('^' + namespaces + '$'));
+				createDebug.names.push(ns);
 			}
 		}
+	}
+
+	/**
+	 * Checks if the given string matches a namespace template, honoring
+	 * asterisks as wildcards.
+	 *
+	 * @param {String} search
+	 * @param {String} template
+	 * @return {Boolean}
+	 */
+	function matchesTemplate(search, template) {
+		let searchIndex = 0;
+		let templateIndex = 0;
+		let starIndex = -1;
+		let matchIndex = 0;
+
+		while (searchIndex < search.length) {
+			if (templateIndex < template.length && (template[templateIndex] === search[searchIndex] || template[templateIndex] === '*')) {
+				// Match character or proceed with wildcard
+				if (template[templateIndex] === '*') {
+					starIndex = templateIndex;
+					matchIndex = searchIndex;
+					templateIndex++; // Skip the '*'
+				} else {
+					searchIndex++;
+					templateIndex++;
+				}
+			} else if (starIndex !== -1) { // eslint-disable-line no-negated-condition
+				// Backtrack to the last '*' and try to match more characters
+				templateIndex = starIndex + 1;
+				matchIndex++;
+				searchIndex = matchIndex;
+			} else {
+				return false; // No match
+			}
+		}
+
+		// Handle trailing '*' in template
+		while (templateIndex < template.length && template[templateIndex] === '*') {
+			templateIndex++;
+		}
+
+		return templateIndex === template.length;
 	}
 
 	/**
@@ -9945,8 +10070,8 @@ function setup(env) {
 	*/
 	function disable() {
 		const namespaces = [
-			...createDebug.names.map(toNamespace),
-			...createDebug.skips.map(toNamespace).map(namespace => '-' + namespace)
+			...createDebug.names,
+			...createDebug.skips.map(namespace => '-' + namespace)
 		].join(',');
 		createDebug.enable('');
 		return namespaces;
@@ -9960,39 +10085,19 @@ function setup(env) {
 	* @api public
 	*/
 	function enabled(name) {
-		if (name[name.length - 1] === '*') {
-			return true;
-		}
-
-		let i;
-		let len;
-
-		for (i = 0, len = createDebug.skips.length; i < len; i++) {
-			if (createDebug.skips[i].test(name)) {
+		for (const skip of createDebug.skips) {
+			if (matchesTemplate(name, skip)) {
 				return false;
 			}
 		}
 
-		for (i = 0, len = createDebug.names.length; i < len; i++) {
-			if (createDebug.names[i].test(name)) {
+		for (const ns of createDebug.names) {
+			if (matchesTemplate(name, ns)) {
 				return true;
 			}
 		}
 
 		return false;
-	}
-
-	/**
-	* Convert regexp to namespace
-	*
-	* @param {RegExp} regxep
-	* @return {String} namespace
-	* @api private
-	*/
-	function toNamespace(regexp) {
-		return regexp.toString()
-			.substring(2, regexp.toString().length - 2)
-			.replace(/\.\*\?$/, '*');
 	}
 
 	/**
@@ -10236,11 +10341,11 @@ function getDate() {
 }
 
 /**
- * Invokes `util.format()` with the specified arguments and writes to stderr.
+ * Invokes `util.formatWithOptions()` with the specified arguments and writes to stderr.
  */
 
 function log(...args) {
-	return process.stderr.write(util.format(...args) + '\n');
+	return process.stderr.write(util.formatWithOptions(exports.inspectOpts, ...args) + '\n');
 }
 
 /**
@@ -10595,6 +10700,194 @@ exports.Deprecation = Deprecation;
 
 /***/ }),
 
+/***/ 26669:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+var callBind = __nccwpck_require__(88705);
+var gOPD = __nccwpck_require__(33170);
+
+var hasProtoAccessor;
+try {
+	// eslint-disable-next-line no-extra-parens, no-proto
+	hasProtoAccessor = /** @type {{ __proto__?: typeof Array.prototype }} */ ([]).__proto__ === Array.prototype;
+} catch (e) {
+	if (!e || typeof e !== 'object' || !('code' in e) || e.code !== 'ERR_PROTO_ACCESS') {
+		throw e;
+	}
+}
+
+// eslint-disable-next-line no-extra-parens
+var desc = !!hasProtoAccessor && gOPD && gOPD(Object.prototype, /** @type {keyof typeof Object.prototype} */ ('__proto__'));
+
+var $Object = Object;
+var $getPrototypeOf = $Object.getPrototypeOf;
+
+/** @type {import('./get')} */
+module.exports = desc && typeof desc.get === 'function'
+	? callBind([desc.get])
+	: typeof $getPrototypeOf === 'function'
+		? /** @type {import('./get')} */ function getDunder(value) {
+			// eslint-disable-next-line eqeqeq
+			return $getPrototypeOf(value == null ? value : $Object(value));
+		}
+		: false;
+
+
+/***/ }),
+
+/***/ 79094:
+/***/ ((module) => {
+
+
+
+/** @type {import('.')} */
+var $defineProperty = Object.defineProperty || false;
+if ($defineProperty) {
+	try {
+		$defineProperty({}, 'a', { value: 1 });
+	} catch (e) {
+		// IE 8 has a broken defineProperty
+		$defineProperty = false;
+	}
+}
+
+module.exports = $defineProperty;
+
+
+/***/ }),
+
+/***/ 33056:
+/***/ ((module) => {
+
+
+
+/** @type {import('./eval')} */
+module.exports = EvalError;
+
+
+/***/ }),
+
+/***/ 31620:
+/***/ ((module) => {
+
+
+
+/** @type {import('.')} */
+module.exports = Error;
+
+
+/***/ }),
+
+/***/ 14585:
+/***/ ((module) => {
+
+
+
+/** @type {import('./range')} */
+module.exports = RangeError;
+
+
+/***/ }),
+
+/***/ 46905:
+/***/ ((module) => {
+
+
+
+/** @type {import('./ref')} */
+module.exports = ReferenceError;
+
+
+/***/ }),
+
+/***/ 80105:
+/***/ ((module) => {
+
+
+
+/** @type {import('./syntax')} */
+module.exports = SyntaxError;
+
+
+/***/ }),
+
+/***/ 73314:
+/***/ ((module) => {
+
+
+
+/** @type {import('./type')} */
+module.exports = TypeError;
+
+
+/***/ }),
+
+/***/ 32578:
+/***/ ((module) => {
+
+
+
+/** @type {import('./uri')} */
+module.exports = URIError;
+
+
+/***/ }),
+
+/***/ 95399:
+/***/ ((module) => {
+
+
+
+/** @type {import('.')} */
+module.exports = Object;
+
+
+/***/ }),
+
+/***/ 88700:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+var GetIntrinsic = __nccwpck_require__(60470);
+
+var $defineProperty = GetIntrinsic('%Object.defineProperty%', true);
+
+var hasToStringTag = __nccwpck_require__(85479)();
+var hasOwn = __nccwpck_require__(54076);
+var $TypeError = __nccwpck_require__(73314);
+
+var toStringTag = hasToStringTag ? Symbol.toStringTag : null;
+
+/** @type {import('.')} */
+module.exports = function setToStringTag(object, value) {
+	var overrideIfSet = arguments.length > 2 && !!arguments[2] && arguments[2].force;
+	var nonConfigurable = arguments.length > 2 && !!arguments[2] && arguments[2].nonConfigurable;
+	if (
+		(typeof overrideIfSet !== 'undefined' && typeof overrideIfSet !== 'boolean')
+		|| (typeof nonConfigurable !== 'undefined' && typeof nonConfigurable !== 'boolean')
+	) {
+		throw new $TypeError('if provided, the `overrideIfSet` and `nonConfigurable` options must be booleans');
+	}
+	if (toStringTag && (overrideIfSet || !hasOwn(object, toStringTag))) {
+		if ($defineProperty) {
+			$defineProperty(object, toStringTag, {
+				configurable: !nonConfigurable,
+				enumerable: false,
+				value: value,
+				writable: false
+			});
+		} else {
+			object[toStringTag] = value; // eslint-disable-line no-param-reassign
+		}
+	}
+};
+
+
+/***/ }),
+
 /***/ 34778:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -10628,10 +10921,21 @@ var Writable = (__nccwpck_require__(2203).Writable);
 var assert = __nccwpck_require__(42613);
 var debug = __nccwpck_require__(34778);
 
+// Preventive platform detection
+// istanbul ignore next
+(function detectUnsupportedEnvironment() {
+  var looksLikeNode = typeof process !== "undefined";
+  var looksLikeBrowser = typeof window !== "undefined" && typeof document !== "undefined";
+  var looksLikeV8 = isFunction(Error.captureStackTrace);
+  if (!looksLikeNode && (looksLikeBrowser || !looksLikeV8)) {
+    console.warn("The follow-redirects package should be excluded from browser builds.");
+  }
+}());
+
 // Whether to use the native URL object or the legacy url module
 var useNativeURL = false;
 try {
-  assert(new URL());
+  assert(new URL(""));
 }
 catch (error) {
   useNativeURL = error.code === "ERR_INVALID_URL";
@@ -10968,17 +11272,17 @@ RedirectableRequest.prototype._performRequest = function () {
     var buffers = this._requestBodyBuffers;
     (function writeNext(error) {
       // Only write if this request has not been redirected yet
-      /* istanbul ignore else */
+      // istanbul ignore else
       if (request === self._currentRequest) {
         // Report any write errors
-        /* istanbul ignore if */
+        // istanbul ignore if
         if (error) {
           self.emit("error", error);
         }
         // Write the next buffer if there are still left
         else if (i < buffers.length) {
           var buffer = buffers[i++];
-          /* istanbul ignore else */
+          // istanbul ignore else
           if (!request.finished) {
             request.write(buffer.data, buffer.encoding, writeNext);
           }
@@ -11174,7 +11478,7 @@ function noop() { /* empty */ }
 
 function parseUrl(input) {
   var parsed;
-  /* istanbul ignore else */
+  // istanbul ignore else
   if (useNativeURL) {
     parsed = new URL(input);
   }
@@ -11189,7 +11493,7 @@ function parseUrl(input) {
 }
 
 function resolveUrl(relative, base) {
-  /* istanbul ignore next */
+  // istanbul ignore next
   return useNativeURL ? new URL(relative, base) : parseUrl(url.resolve(base, relative));
 }
 
@@ -11238,7 +11542,10 @@ function removeMatchingHeaders(regex, headers) {
 function createErrorType(code, message, baseClass) {
   // Create constructor
   function CustomError(properties) {
-    Error.captureStackTrace(this, this.constructor);
+    // istanbul ignore else
+    if (isFunction(Error.captureStackTrace)) {
+      Error.captureStackTrace(this, this.constructor);
+    }
     Object.assign(this, properties || {});
     this.code = code;
     this.message = this.cause ? message + ": " + this.cause.message : message;
@@ -11309,1072 +11616,8 @@ var fs = __nccwpck_require__(79896);
 var Stream = (__nccwpck_require__(2203).Stream);
 var mime = __nccwpck_require__(14096);
 var asynckit = __nccwpck_require__(31324);
+var setToStringTag = __nccwpck_require__(88700);
 var populate = __nccwpck_require__(11835);
-
-// Public API
-module.exports = FormData;
-
-// make it a Stream
-util.inherits(FormData, CombinedStream);
-
-/**
- * Create readable "multipart/form-data" streams.
- * Can be used to submit forms
- * and file uploads to other web applications.
- *
- * @constructor
- * @param {Object} options - Properties to be added/overriden for FormData and CombinedStream
- */
-function FormData(options) {
-  if (!(this instanceof FormData)) {
-    return new FormData(options);
-  }
-
-  this._overheadLength = 0;
-  this._valueLength = 0;
-  this._valuesToMeasure = [];
-
-  CombinedStream.call(this);
-
-  options = options || {};
-  for (var option in options) {
-    this[option] = options[option];
-  }
-}
-
-FormData.LINE_BREAK = '\r\n';
-FormData.DEFAULT_CONTENT_TYPE = 'application/octet-stream';
-
-FormData.prototype.append = function(field, value, options) {
-
-  options = options || {};
-
-  // allow filename as single option
-  if (typeof options == 'string') {
-    options = {filename: options};
-  }
-
-  var append = CombinedStream.prototype.append.bind(this);
-
-  // all that streamy business can't handle numbers
-  if (typeof value == 'number') {
-    value = '' + value;
-  }
-
-  // https://github.com/felixge/node-form-data/issues/38
-  if (util.isArray(value)) {
-    // Please convert your array into string
-    // the way web server expects it
-    this._error(new Error('Arrays are not supported.'));
-    return;
-  }
-
-  var header = this._multiPartHeader(field, value, options);
-  var footer = this._multiPartFooter();
-
-  append(header);
-  append(value);
-  append(footer);
-
-  // pass along options.knownLength
-  this._trackLength(header, value, options);
-};
-
-FormData.prototype._trackLength = function(header, value, options) {
-  var valueLength = 0;
-
-  // used w/ getLengthSync(), when length is known.
-  // e.g. for streaming directly from a remote server,
-  // w/ a known file a size, and not wanting to wait for
-  // incoming file to finish to get its size.
-  if (options.knownLength != null) {
-    valueLength += +options.knownLength;
-  } else if (Buffer.isBuffer(value)) {
-    valueLength = value.length;
-  } else if (typeof value === 'string') {
-    valueLength = Buffer.byteLength(value);
-  }
-
-  this._valueLength += valueLength;
-
-  // @check why add CRLF? does this account for custom/multiple CRLFs?
-  this._overheadLength +=
-    Buffer.byteLength(header) +
-    FormData.LINE_BREAK.length;
-
-  // empty or either doesn't have path or not an http response or not a stream
-  if (!value || ( !value.path && !(value.readable && value.hasOwnProperty('httpVersion')) && !(value instanceof Stream))) {
-    return;
-  }
-
-  // no need to bother with the length
-  if (!options.knownLength) {
-    this._valuesToMeasure.push(value);
-  }
-};
-
-FormData.prototype._lengthRetriever = function(value, callback) {
-
-  if (value.hasOwnProperty('fd')) {
-
-    // take read range into a account
-    // `end` = Infinity –> read file till the end
-    //
-    // TODO: Looks like there is bug in Node fs.createReadStream
-    // it doesn't respect `end` options without `start` options
-    // Fix it when node fixes it.
-    // https://github.com/joyent/node/issues/7819
-    if (value.end != undefined && value.end != Infinity && value.start != undefined) {
-
-      // when end specified
-      // no need to calculate range
-      // inclusive, starts with 0
-      callback(null, value.end + 1 - (value.start ? value.start : 0));
-
-    // not that fast snoopy
-    } else {
-      // still need to fetch file size from fs
-      fs.stat(value.path, function(err, stat) {
-
-        var fileSize;
-
-        if (err) {
-          callback(err);
-          return;
-        }
-
-        // update final size based on the range options
-        fileSize = stat.size - (value.start ? value.start : 0);
-        callback(null, fileSize);
-      });
-    }
-
-  // or http response
-  } else if (value.hasOwnProperty('httpVersion')) {
-    callback(null, +value.headers['content-length']);
-
-  // or request stream http://github.com/mikeal/request
-  } else if (value.hasOwnProperty('httpModule')) {
-    // wait till response come back
-    value.on('response', function(response) {
-      value.pause();
-      callback(null, +response.headers['content-length']);
-    });
-    value.resume();
-
-  // something else
-  } else {
-    callback('Unknown stream');
-  }
-};
-
-FormData.prototype._multiPartHeader = function(field, value, options) {
-  // custom header specified (as string)?
-  // it becomes responsible for boundary
-  // (e.g. to handle extra CRLFs on .NET servers)
-  if (typeof options.header == 'string') {
-    return options.header;
-  }
-
-  var contentDisposition = this._getContentDisposition(value, options);
-  var contentType = this._getContentType(value, options);
-
-  var contents = '';
-  var headers  = {
-    // add custom disposition as third element or keep it two elements if not
-    'Content-Disposition': ['form-data', 'name="' + field + '"'].concat(contentDisposition || []),
-    // if no content type. allow it to be empty array
-    'Content-Type': [].concat(contentType || [])
-  };
-
-  // allow custom headers.
-  if (typeof options.header == 'object') {
-    populate(headers, options.header);
-  }
-
-  var header;
-  for (var prop in headers) {
-    if (!headers.hasOwnProperty(prop)) continue;
-    header = headers[prop];
-
-    // skip nullish headers.
-    if (header == null) {
-      continue;
-    }
-
-    // convert all headers to arrays.
-    if (!Array.isArray(header)) {
-      header = [header];
-    }
-
-    // add non-empty headers.
-    if (header.length) {
-      contents += prop + ': ' + header.join('; ') + FormData.LINE_BREAK;
-    }
-  }
-
-  return '--' + this.getBoundary() + FormData.LINE_BREAK + contents + FormData.LINE_BREAK;
-};
-
-FormData.prototype._getContentDisposition = function(value, options) {
-
-  var filename
-    , contentDisposition
-    ;
-
-  if (typeof options.filepath === 'string') {
-    // custom filepath for relative paths
-    filename = path.normalize(options.filepath).replace(/\\/g, '/');
-  } else if (options.filename || value.name || value.path) {
-    // custom filename take precedence
-    // formidable and the browser add a name property
-    // fs- and request- streams have path property
-    filename = path.basename(options.filename || value.name || value.path);
-  } else if (value.readable && value.hasOwnProperty('httpVersion')) {
-    // or try http response
-    filename = path.basename(value.client._httpMessage.path || '');
-  }
-
-  if (filename) {
-    contentDisposition = 'filename="' + filename + '"';
-  }
-
-  return contentDisposition;
-};
-
-FormData.prototype._getContentType = function(value, options) {
-
-  // use custom content-type above all
-  var contentType = options.contentType;
-
-  // or try `name` from formidable, browser
-  if (!contentType && value.name) {
-    contentType = mime.lookup(value.name);
-  }
-
-  // or try `path` from fs-, request- streams
-  if (!contentType && value.path) {
-    contentType = mime.lookup(value.path);
-  }
-
-  // or if it's http-reponse
-  if (!contentType && value.readable && value.hasOwnProperty('httpVersion')) {
-    contentType = value.headers['content-type'];
-  }
-
-  // or guess it from the filepath or filename
-  if (!contentType && (options.filepath || options.filename)) {
-    contentType = mime.lookup(options.filepath || options.filename);
-  }
-
-  // fallback to the default content type if `value` is not simple value
-  if (!contentType && typeof value == 'object') {
-    contentType = FormData.DEFAULT_CONTENT_TYPE;
-  }
-
-  return contentType;
-};
-
-FormData.prototype._multiPartFooter = function() {
-  return function(next) {
-    var footer = FormData.LINE_BREAK;
-
-    var lastPart = (this._streams.length === 0);
-    if (lastPart) {
-      footer += this._lastBoundary();
-    }
-
-    next(footer);
-  }.bind(this);
-};
-
-FormData.prototype._lastBoundary = function() {
-  return '--' + this.getBoundary() + '--' + FormData.LINE_BREAK;
-};
-
-FormData.prototype.getHeaders = function(userHeaders) {
-  var header;
-  var formHeaders = {
-    'content-type': 'multipart/form-data; boundary=' + this.getBoundary()
-  };
-
-  for (header in userHeaders) {
-    if (userHeaders.hasOwnProperty(header)) {
-      formHeaders[header.toLowerCase()] = userHeaders[header];
-    }
-  }
-
-  return formHeaders;
-};
-
-FormData.prototype.setBoundary = function(boundary) {
-  this._boundary = boundary;
-};
-
-FormData.prototype.getBoundary = function() {
-  if (!this._boundary) {
-    this._generateBoundary();
-  }
-
-  return this._boundary;
-};
-
-FormData.prototype.getBuffer = function() {
-  var dataBuffer = new Buffer.alloc( 0 );
-  var boundary = this.getBoundary();
-
-  // Create the form content. Add Line breaks to the end of data.
-  for (var i = 0, len = this._streams.length; i < len; i++) {
-    if (typeof this._streams[i] !== 'function') {
-
-      // Add content to the buffer.
-      if(Buffer.isBuffer(this._streams[i])) {
-        dataBuffer = Buffer.concat( [dataBuffer, this._streams[i]]);
-      }else {
-        dataBuffer = Buffer.concat( [dataBuffer, Buffer.from(this._streams[i])]);
-      }
-
-      // Add break after content.
-      if (typeof this._streams[i] !== 'string' || this._streams[i].substring( 2, boundary.length + 2 ) !== boundary) {
-        dataBuffer = Buffer.concat( [dataBuffer, Buffer.from(FormData.LINE_BREAK)] );
-      }
-    }
-  }
-
-  // Add the footer and return the Buffer object.
-  return Buffer.concat( [dataBuffer, Buffer.from(this._lastBoundary())] );
-};
-
-FormData.prototype._generateBoundary = function() {
-  // This generates a 50 character boundary similar to those used by Firefox.
-  // They are optimized for boyer-moore parsing.
-  var boundary = '--------------------------';
-  for (var i = 0; i < 24; i++) {
-    boundary += Math.floor(Math.random() * 10).toString(16);
-  }
-
-  this._boundary = boundary;
-};
-
-// Note: getLengthSync DOESN'T calculate streams length
-// As workaround one can calculate file size manually
-// and add it as knownLength option
-FormData.prototype.getLengthSync = function() {
-  var knownLength = this._overheadLength + this._valueLength;
-
-  // Don't get confused, there are 3 "internal" streams for each keyval pair
-  // so it basically checks if there is any value added to the form
-  if (this._streams.length) {
-    knownLength += this._lastBoundary().length;
-  }
-
-  // https://github.com/form-data/form-data/issues/40
-  if (!this.hasKnownLength()) {
-    // Some async length retrievers are present
-    // therefore synchronous length calculation is false.
-    // Please use getLength(callback) to get proper length
-    this._error(new Error('Cannot calculate proper length in synchronous way.'));
-  }
-
-  return knownLength;
-};
-
-// Public API to check if length of added values is known
-// https://github.com/form-data/form-data/issues/196
-// https://github.com/form-data/form-data/issues/262
-FormData.prototype.hasKnownLength = function() {
-  var hasKnownLength = true;
-
-  if (this._valuesToMeasure.length) {
-    hasKnownLength = false;
-  }
-
-  return hasKnownLength;
-};
-
-FormData.prototype.getLength = function(cb) {
-  var knownLength = this._overheadLength + this._valueLength;
-
-  if (this._streams.length) {
-    knownLength += this._lastBoundary().length;
-  }
-
-  if (!this._valuesToMeasure.length) {
-    process.nextTick(cb.bind(this, null, knownLength));
-    return;
-  }
-
-  asynckit.parallel(this._valuesToMeasure, this._lengthRetriever, function(err, values) {
-    if (err) {
-      cb(err);
-      return;
-    }
-
-    values.forEach(function(length) {
-      knownLength += length;
-    });
-
-    cb(null, knownLength);
-  });
-};
-
-FormData.prototype.submit = function(params, cb) {
-  var request
-    , options
-    , defaults = {method: 'post'}
-    ;
-
-  // parse provided url if it's string
-  // or treat it as options object
-  if (typeof params == 'string') {
-
-    params = parseUrl(params);
-    options = populate({
-      port: params.port,
-      path: params.pathname,
-      host: params.hostname,
-      protocol: params.protocol
-    }, defaults);
-
-  // use custom params
-  } else {
-
-    options = populate(params, defaults);
-    // if no port provided use default one
-    if (!options.port) {
-      options.port = options.protocol == 'https:' ? 443 : 80;
-    }
-  }
-
-  // put that good code in getHeaders to some use
-  options.headers = this.getHeaders(params.headers);
-
-  // https if specified, fallback to http in any other case
-  if (options.protocol == 'https:') {
-    request = https.request(options);
-  } else {
-    request = http.request(options);
-  }
-
-  // get content length and fire away
-  this.getLength(function(err, length) {
-    if (err && err !== 'Unknown stream') {
-      this._error(err);
-      return;
-    }
-
-    // add content length
-    if (length) {
-      request.setHeader('Content-Length', length);
-    }
-
-    this.pipe(request);
-    if (cb) {
-      var onResponse;
-
-      var callback = function (error, responce) {
-        request.removeListener('error', callback);
-        request.removeListener('response', onResponse);
-
-        return cb.call(this, error, responce);
-      };
-
-      onResponse = callback.bind(this, null);
-
-      request.on('error', callback);
-      request.on('response', onResponse);
-    }
-  }.bind(this));
-
-  return request;
-};
-
-FormData.prototype._error = function(err) {
-  if (!this.error) {
-    this.error = err;
-    this.pause();
-    this.emit('error', err);
-  }
-};
-
-FormData.prototype.toString = function () {
-  return '[object FormData]';
-};
-
-
-/***/ }),
-
-/***/ 11835:
-/***/ ((module) => {
-
-// populates missing values
-module.exports = function(dst, src) {
-
-  Object.keys(src).forEach(function(prop)
-  {
-    dst[prop] = dst[prop] || src[prop];
-  });
-
-  return dst;
-};
-
-
-/***/ }),
-
-/***/ 83813:
-/***/ ((module) => {
-
-
-
-module.exports = (flag, argv = process.argv) => {
-	const prefix = flag.startsWith('-') ? '' : (flag.length === 1 ? '-' : '--');
-	const position = argv.indexOf(prefix + flag);
-	const terminatorPosition = argv.indexOf('--');
-	return position !== -1 && (terminatorPosition === -1 || position < terminatorPosition);
-};
-
-
-/***/ }),
-
-/***/ 50809:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var CombinedStream = __nccwpck_require__(35630);
-var util = __nccwpck_require__(39023);
-var path = __nccwpck_require__(16928);
-var http = __nccwpck_require__(58611);
-var https = __nccwpck_require__(65692);
-var parseUrl = (__nccwpck_require__(87016).parse);
-var fs = __nccwpck_require__(79896);
-var Stream = (__nccwpck_require__(2203).Stream);
-var mime = __nccwpck_require__(14096);
-var asynckit = __nccwpck_require__(31324);
-var populate = __nccwpck_require__(55290);
-
-// Public API
-module.exports = FormData;
-
-// make it a Stream
-util.inherits(FormData, CombinedStream);
-
-/**
- * Create readable "multipart/form-data" streams.
- * Can be used to submit forms
- * and file uploads to other web applications.
- *
- * @constructor
- * @param {Object} options - Properties to be added/overriden for FormData and CombinedStream
- */
-function FormData(options) {
-  if (!(this instanceof FormData)) {
-    return new FormData(options);
-  }
-
-  this._overheadLength = 0;
-  this._valueLength = 0;
-  this._valuesToMeasure = [];
-
-  CombinedStream.call(this);
-
-  options = options || {};
-  for (var option in options) {
-    this[option] = options[option];
-  }
-}
-
-FormData.LINE_BREAK = '\r\n';
-FormData.DEFAULT_CONTENT_TYPE = 'application/octet-stream';
-
-FormData.prototype.append = function(field, value, options) {
-
-  options = options || {};
-
-  // allow filename as single option
-  if (typeof options == 'string') {
-    options = {filename: options};
-  }
-
-  var append = CombinedStream.prototype.append.bind(this);
-
-  // all that streamy business can't handle numbers
-  if (typeof value == 'number') {
-    value = '' + value;
-  }
-
-  // https://github.com/felixge/node-form-data/issues/38
-  if (util.isArray(value)) {
-    // Please convert your array into string
-    // the way web server expects it
-    this._error(new Error('Arrays are not supported.'));
-    return;
-  }
-
-  var header = this._multiPartHeader(field, value, options);
-  var footer = this._multiPartFooter();
-
-  append(header);
-  append(value);
-  append(footer);
-
-  // pass along options.knownLength
-  this._trackLength(header, value, options);
-};
-
-FormData.prototype._trackLength = function(header, value, options) {
-  var valueLength = 0;
-
-  // used w/ getLengthSync(), when length is known.
-  // e.g. for streaming directly from a remote server,
-  // w/ a known file a size, and not wanting to wait for
-  // incoming file to finish to get its size.
-  if (options.knownLength != null) {
-    valueLength += +options.knownLength;
-  } else if (Buffer.isBuffer(value)) {
-    valueLength = value.length;
-  } else if (typeof value === 'string') {
-    valueLength = Buffer.byteLength(value);
-  }
-
-  this._valueLength += valueLength;
-
-  // @check why add CRLF? does this account for custom/multiple CRLFs?
-  this._overheadLength +=
-    Buffer.byteLength(header) +
-    FormData.LINE_BREAK.length;
-
-  // empty or either doesn't have path or not an http response or not a stream
-  if (!value || ( !value.path && !(value.readable && value.hasOwnProperty('httpVersion')) && !(value instanceof Stream))) {
-    return;
-  }
-
-  // no need to bother with the length
-  if (!options.knownLength) {
-    this._valuesToMeasure.push(value);
-  }
-};
-
-FormData.prototype._lengthRetriever = function(value, callback) {
-
-  if (value.hasOwnProperty('fd')) {
-
-    // take read range into a account
-    // `end` = Infinity –> read file till the end
-    //
-    // TODO: Looks like there is bug in Node fs.createReadStream
-    // it doesn't respect `end` options without `start` options
-    // Fix it when node fixes it.
-    // https://github.com/joyent/node/issues/7819
-    if (value.end != undefined && value.end != Infinity && value.start != undefined) {
-
-      // when end specified
-      // no need to calculate range
-      // inclusive, starts with 0
-      callback(null, value.end + 1 - (value.start ? value.start : 0));
-
-    // not that fast snoopy
-    } else {
-      // still need to fetch file size from fs
-      fs.stat(value.path, function(err, stat) {
-
-        var fileSize;
-
-        if (err) {
-          callback(err);
-          return;
-        }
-
-        // update final size based on the range options
-        fileSize = stat.size - (value.start ? value.start : 0);
-        callback(null, fileSize);
-      });
-    }
-
-  // or http response
-  } else if (value.hasOwnProperty('httpVersion')) {
-    callback(null, +value.headers['content-length']);
-
-  // or request stream http://github.com/mikeal/request
-  } else if (value.hasOwnProperty('httpModule')) {
-    // wait till response come back
-    value.on('response', function(response) {
-      value.pause();
-      callback(null, +response.headers['content-length']);
-    });
-    value.resume();
-
-  // something else
-  } else {
-    callback('Unknown stream');
-  }
-};
-
-FormData.prototype._multiPartHeader = function(field, value, options) {
-  // custom header specified (as string)?
-  // it becomes responsible for boundary
-  // (e.g. to handle extra CRLFs on .NET servers)
-  if (typeof options.header == 'string') {
-    return options.header;
-  }
-
-  var contentDisposition = this._getContentDisposition(value, options);
-  var contentType = this._getContentType(value, options);
-
-  var contents = '';
-  var headers  = {
-    // add custom disposition as third element or keep it two elements if not
-    'Content-Disposition': ['form-data', 'name="' + field + '"'].concat(contentDisposition || []),
-    // if no content type. allow it to be empty array
-    'Content-Type': [].concat(contentType || [])
-  };
-
-  // allow custom headers.
-  if (typeof options.header == 'object') {
-    populate(headers, options.header);
-  }
-
-  var header;
-  for (var prop in headers) {
-    if (!headers.hasOwnProperty(prop)) continue;
-    header = headers[prop];
-
-    // skip nullish headers.
-    if (header == null) {
-      continue;
-    }
-
-    // convert all headers to arrays.
-    if (!Array.isArray(header)) {
-      header = [header];
-    }
-
-    // add non-empty headers.
-    if (header.length) {
-      contents += prop + ': ' + header.join('; ') + FormData.LINE_BREAK;
-    }
-  }
-
-  return '--' + this.getBoundary() + FormData.LINE_BREAK + contents + FormData.LINE_BREAK;
-};
-
-FormData.prototype._getContentDisposition = function(value, options) {
-
-  var filename
-    , contentDisposition
-    ;
-
-  if (typeof options.filepath === 'string') {
-    // custom filepath for relative paths
-    filename = path.normalize(options.filepath).replace(/\\/g, '/');
-  } else if (options.filename || value.name || value.path) {
-    // custom filename take precedence
-    // formidable and the browser add a name property
-    // fs- and request- streams have path property
-    filename = path.basename(options.filename || value.name || value.path);
-  } else if (value.readable && value.hasOwnProperty('httpVersion')) {
-    // or try http response
-    filename = path.basename(value.client._httpMessage.path || '');
-  }
-
-  if (filename) {
-    contentDisposition = 'filename="' + filename + '"';
-  }
-
-  return contentDisposition;
-};
-
-FormData.prototype._getContentType = function(value, options) {
-
-  // use custom content-type above all
-  var contentType = options.contentType;
-
-  // or try `name` from formidable, browser
-  if (!contentType && value.name) {
-    contentType = mime.lookup(value.name);
-  }
-
-  // or try `path` from fs-, request- streams
-  if (!contentType && value.path) {
-    contentType = mime.lookup(value.path);
-  }
-
-  // or if it's http-reponse
-  if (!contentType && value.readable && value.hasOwnProperty('httpVersion')) {
-    contentType = value.headers['content-type'];
-  }
-
-  // or guess it from the filepath or filename
-  if (!contentType && (options.filepath || options.filename)) {
-    contentType = mime.lookup(options.filepath || options.filename);
-  }
-
-  // fallback to the default content type if `value` is not simple value
-  if (!contentType && typeof value == 'object') {
-    contentType = FormData.DEFAULT_CONTENT_TYPE;
-  }
-
-  return contentType;
-};
-
-FormData.prototype._multiPartFooter = function() {
-  return function(next) {
-    var footer = FormData.LINE_BREAK;
-
-    var lastPart = (this._streams.length === 0);
-    if (lastPart) {
-      footer += this._lastBoundary();
-    }
-
-    next(footer);
-  }.bind(this);
-};
-
-FormData.prototype._lastBoundary = function() {
-  return '--' + this.getBoundary() + '--' + FormData.LINE_BREAK;
-};
-
-FormData.prototype.getHeaders = function(userHeaders) {
-  var header;
-  var formHeaders = {
-    'content-type': 'multipart/form-data; boundary=' + this.getBoundary()
-  };
-
-  for (header in userHeaders) {
-    if (userHeaders.hasOwnProperty(header)) {
-      formHeaders[header.toLowerCase()] = userHeaders[header];
-    }
-  }
-
-  return formHeaders;
-};
-
-FormData.prototype.setBoundary = function(boundary) {
-  this._boundary = boundary;
-};
-
-FormData.prototype.getBoundary = function() {
-  if (!this._boundary) {
-    this._generateBoundary();
-  }
-
-  return this._boundary;
-};
-
-FormData.prototype.getBuffer = function() {
-  var dataBuffer = new Buffer.alloc( 0 );
-  var boundary = this.getBoundary();
-
-  // Create the form content. Add Line breaks to the end of data.
-  for (var i = 0, len = this._streams.length; i < len; i++) {
-    if (typeof this._streams[i] !== 'function') {
-
-      // Add content to the buffer.
-      if(Buffer.isBuffer(this._streams[i])) {
-        dataBuffer = Buffer.concat( [dataBuffer, this._streams[i]]);
-      }else {
-        dataBuffer = Buffer.concat( [dataBuffer, Buffer.from(this._streams[i])]);
-      }
-
-      // Add break after content.
-      if (typeof this._streams[i] !== 'string' || this._streams[i].substring( 2, boundary.length + 2 ) !== boundary) {
-        dataBuffer = Buffer.concat( [dataBuffer, Buffer.from(FormData.LINE_BREAK)] );
-      }
-    }
-  }
-
-  // Add the footer and return the Buffer object.
-  return Buffer.concat( [dataBuffer, Buffer.from(this._lastBoundary())] );
-};
-
-FormData.prototype._generateBoundary = function() {
-  // This generates a 50 character boundary similar to those used by Firefox.
-  // They are optimized for boyer-moore parsing.
-  var boundary = '--------------------------';
-  for (var i = 0; i < 24; i++) {
-    boundary += Math.floor(Math.random() * 10).toString(16);
-  }
-
-  this._boundary = boundary;
-};
-
-// Note: getLengthSync DOESN'T calculate streams length
-// As workaround one can calculate file size manually
-// and add it as knownLength option
-FormData.prototype.getLengthSync = function() {
-  var knownLength = this._overheadLength + this._valueLength;
-
-  // Don't get confused, there are 3 "internal" streams for each keyval pair
-  // so it basically checks if there is any value added to the form
-  if (this._streams.length) {
-    knownLength += this._lastBoundary().length;
-  }
-
-  // https://github.com/form-data/form-data/issues/40
-  if (!this.hasKnownLength()) {
-    // Some async length retrievers are present
-    // therefore synchronous length calculation is false.
-    // Please use getLength(callback) to get proper length
-    this._error(new Error('Cannot calculate proper length in synchronous way.'));
-  }
-
-  return knownLength;
-};
-
-// Public API to check if length of added values is known
-// https://github.com/form-data/form-data/issues/196
-// https://github.com/form-data/form-data/issues/262
-FormData.prototype.hasKnownLength = function() {
-  var hasKnownLength = true;
-
-  if (this._valuesToMeasure.length) {
-    hasKnownLength = false;
-  }
-
-  return hasKnownLength;
-};
-
-FormData.prototype.getLength = function(cb) {
-  var knownLength = this._overheadLength + this._valueLength;
-
-  if (this._streams.length) {
-    knownLength += this._lastBoundary().length;
-  }
-
-  if (!this._valuesToMeasure.length) {
-    process.nextTick(cb.bind(this, null, knownLength));
-    return;
-  }
-
-  asynckit.parallel(this._valuesToMeasure, this._lengthRetriever, function(err, values) {
-    if (err) {
-      cb(err);
-      return;
-    }
-
-    values.forEach(function(length) {
-      knownLength += length;
-    });
-
-    cb(null, knownLength);
-  });
-};
-
-FormData.prototype.submit = function(params, cb) {
-  var request
-    , options
-    , defaults = {method: 'post'}
-    ;
-
-  // parse provided url if it's string
-  // or treat it as options object
-  if (typeof params == 'string') {
-
-    params = parseUrl(params);
-    options = populate({
-      port: params.port,
-      path: params.pathname,
-      host: params.hostname,
-      protocol: params.protocol
-    }, defaults);
-
-  // use custom params
-  } else {
-
-    options = populate(params, defaults);
-    // if no port provided use default one
-    if (!options.port) {
-      options.port = options.protocol == 'https:' ? 443 : 80;
-    }
-  }
-
-  // put that good code in getHeaders to some use
-  options.headers = this.getHeaders(params.headers);
-
-  // https if specified, fallback to http in any other case
-  if (options.protocol == 'https:') {
-    request = https.request(options);
-  } else {
-    request = http.request(options);
-  }
-
-  // get content length and fire away
-  this.getLength(function(err, length) {
-    if (err && err !== 'Unknown stream') {
-      this._error(err);
-      return;
-    }
-
-    // add content length
-    if (length) {
-      request.setHeader('Content-Length', length);
-    }
-
-    this.pipe(request);
-    if (cb) {
-      var onResponse;
-
-      var callback = function (error, responce) {
-        request.removeListener('error', callback);
-        request.removeListener('response', onResponse);
-
-        return cb.call(this, error, responce);
-      };
-
-      onResponse = callback.bind(this, null);
-
-      request.on('error', callback);
-      request.on('response', onResponse);
-    }
-  }.bind(this));
-
-  return request;
-};
-
-FormData.prototype._error = function(err) {
-  if (!this.error) {
-    this.error = err;
-    this.pause();
-    this.emit('error', err);
-  }
-};
-
-FormData.prototype.toString = function () {
-  return '[object FormData]';
-};
-
-
-/***/ }),
-
-/***/ 55290:
-/***/ ((module) => {
-
-// populates missing values
-module.exports = function(dst, src) {
-
-  Object.keys(src).forEach(function(prop)
-  {
-    dst[prop] = dst[prop] || src[prop];
-  });
-
-  return dst;
-};
-
-
-/***/ }),
-
-/***/ 82805:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var CombinedStream = __nccwpck_require__(35630);
-var util = __nccwpck_require__(39023);
-var path = __nccwpck_require__(16928);
-var http = __nccwpck_require__(58611);
-var https = __nccwpck_require__(65692);
-var parseUrl = (__nccwpck_require__(87016).parse);
-var fs = __nccwpck_require__(79896);
-var Stream = (__nccwpck_require__(2203).Stream);
-var mime = __nccwpck_require__(14096);
-var asynckit = __nccwpck_require__(31324);
-var populate = __nccwpck_require__(46358);
 
 // Public API
 module.exports = FormData;
@@ -12468,7 +11711,7 @@ FormData.prototype._trackLength = function(header, value, options) {
     FormData.LINE_BREAK.length;
 
   // empty or either doesn't have path or not an http response or not a stream
-  if (!value || ( !value.path && !(value.readable && value.hasOwnProperty('httpVersion')) && !(value instanceof Stream))) {
+  if (!value || ( !value.path && !(value.readable && Object.prototype.hasOwnProperty.call(value, 'httpVersion')) && !(value instanceof Stream))) {
     return;
   }
 
@@ -12479,8 +11722,7 @@ FormData.prototype._trackLength = function(header, value, options) {
 };
 
 FormData.prototype._lengthRetriever = function(value, callback) {
-
-  if (value.hasOwnProperty('fd')) {
+  if (Object.prototype.hasOwnProperty.call(value, 'fd')) {
 
     // take read range into a account
     // `end` = Infinity –> read file till the end
@@ -12515,11 +11757,11 @@ FormData.prototype._lengthRetriever = function(value, callback) {
     }
 
   // or http response
-  } else if (value.hasOwnProperty('httpVersion')) {
+  } else if (Object.prototype.hasOwnProperty.call(value, 'httpVersion')) {
     callback(null, +value.headers['content-length']);
 
   // or request stream http://github.com/mikeal/request
-  } else if (value.hasOwnProperty('httpModule')) {
+  } else if (Object.prototype.hasOwnProperty.call(value, 'httpModule')) {
     // wait till response come back
     value.on('response', function(response) {
       value.pause();
@@ -12559,22 +11801,23 @@ FormData.prototype._multiPartHeader = function(field, value, options) {
 
   var header;
   for (var prop in headers) {
-    if (!headers.hasOwnProperty(prop)) continue;
-    header = headers[prop];
+    if (Object.prototype.hasOwnProperty.call(headers, prop)) {
+      header = headers[prop];
 
-    // skip nullish headers.
-    if (header == null) {
-      continue;
-    }
+      // skip nullish headers.
+      if (header == null) {
+        continue;
+      }
 
-    // convert all headers to arrays.
-    if (!Array.isArray(header)) {
-      header = [header];
-    }
+      // convert all headers to arrays.
+      if (!Array.isArray(header)) {
+        header = [header];
+      }
 
-    // add non-empty headers.
-    if (header.length) {
-      contents += prop + ': ' + header.join('; ') + FormData.LINE_BREAK;
+      // add non-empty headers.
+      if (header.length) {
+        contents += prop + ': ' + header.join('; ') + FormData.LINE_BREAK;
+      }
     }
   }
 
@@ -12595,7 +11838,7 @@ FormData.prototype._getContentDisposition = function(value, options) {
     // formidable and the browser add a name property
     // fs- and request- streams have path property
     filename = path.basename(options.filename || value.name || value.path);
-  } else if (value.readable && value.hasOwnProperty('httpVersion')) {
+  } else if (value.readable && Object.prototype.hasOwnProperty.call(value, 'httpVersion')) {
     // or try http response
     filename = path.basename(value.client._httpMessage.path || '');
   }
@@ -12623,7 +11866,7 @@ FormData.prototype._getContentType = function(value, options) {
   }
 
   // or if it's http-reponse
-  if (!contentType && value.readable && value.hasOwnProperty('httpVersion')) {
+  if (!contentType && value.readable && Object.prototype.hasOwnProperty.call(value, 'httpVersion')) {
     contentType = value.headers['content-type'];
   }
 
@@ -12664,7 +11907,7 @@ FormData.prototype.getHeaders = function(userHeaders) {
   };
 
   for (header in userHeaders) {
-    if (userHeaders.hasOwnProperty(header)) {
+    if (Object.prototype.hasOwnProperty.call(userHeaders, header)) {
       formHeaders[header.toLowerCase()] = userHeaders[header];
     }
   }
@@ -12685,7 +11928,7 @@ FormData.prototype.getBoundary = function() {
 };
 
 FormData.prototype.getBuffer = function() {
-  var dataBuffer = new Buffer.alloc( 0 );
+  var dataBuffer = new Buffer.alloc(0);
   var boundary = this.getBoundary();
 
   // Create the form content. Add Line breaks to the end of data.
@@ -12865,11 +12108,12 @@ FormData.prototype._error = function(err) {
 FormData.prototype.toString = function () {
   return '[object FormData]';
 };
+setToStringTag(FormData, 'FormData');
 
 
 /***/ }),
 
-/***/ 46358:
+/***/ 11835:
 /***/ ((module) => {
 
 // populates missing values
@@ -12882,6 +12126,703 @@ module.exports = function(dst, src) {
 
   return dst;
 };
+
+
+/***/ }),
+
+/***/ 99808:
+/***/ ((module) => {
+
+
+
+/* eslint no-invalid-this: 1 */
+
+var ERROR_MESSAGE = 'Function.prototype.bind called on incompatible ';
+var toStr = Object.prototype.toString;
+var max = Math.max;
+var funcType = '[object Function]';
+
+var concatty = function concatty(a, b) {
+    var arr = [];
+
+    for (var i = 0; i < a.length; i += 1) {
+        arr[i] = a[i];
+    }
+    for (var j = 0; j < b.length; j += 1) {
+        arr[j + a.length] = b[j];
+    }
+
+    return arr;
+};
+
+var slicy = function slicy(arrLike, offset) {
+    var arr = [];
+    for (var i = offset || 0, j = 0; i < arrLike.length; i += 1, j += 1) {
+        arr[j] = arrLike[i];
+    }
+    return arr;
+};
+
+var joiny = function (arr, joiner) {
+    var str = '';
+    for (var i = 0; i < arr.length; i += 1) {
+        str += arr[i];
+        if (i + 1 < arr.length) {
+            str += joiner;
+        }
+    }
+    return str;
+};
+
+module.exports = function bind(that) {
+    var target = this;
+    if (typeof target !== 'function' || toStr.apply(target) !== funcType) {
+        throw new TypeError(ERROR_MESSAGE + target);
+    }
+    var args = slicy(arguments, 1);
+
+    var bound;
+    var binder = function () {
+        if (this instanceof bound) {
+            var result = target.apply(
+                this,
+                concatty(args, arguments)
+            );
+            if (Object(result) === result) {
+                return result;
+            }
+            return this;
+        }
+        return target.apply(
+            that,
+            concatty(args, arguments)
+        );
+
+    };
+
+    var boundLength = max(0, target.length - args.length);
+    var boundArgs = [];
+    for (var i = 0; i < boundLength; i++) {
+        boundArgs[i] = '$' + i;
+    }
+
+    bound = Function('binder', 'return function (' + joiny(boundArgs, ',') + '){ return binder.apply(this,arguments); }')(binder);
+
+    if (target.prototype) {
+        var Empty = function Empty() {};
+        Empty.prototype = target.prototype;
+        bound.prototype = new Empty();
+        Empty.prototype = null;
+    }
+
+    return bound;
+};
+
+
+/***/ }),
+
+/***/ 37564:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+var implementation = __nccwpck_require__(99808);
+
+module.exports = Function.prototype.bind || implementation;
+
+
+/***/ }),
+
+/***/ 60470:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+var undefined;
+
+var $Object = __nccwpck_require__(95399);
+
+var $Error = __nccwpck_require__(31620);
+var $EvalError = __nccwpck_require__(33056);
+var $RangeError = __nccwpck_require__(14585);
+var $ReferenceError = __nccwpck_require__(46905);
+var $SyntaxError = __nccwpck_require__(80105);
+var $TypeError = __nccwpck_require__(73314);
+var $URIError = __nccwpck_require__(32578);
+
+var abs = __nccwpck_require__(55641);
+var floor = __nccwpck_require__(96171);
+var max = __nccwpck_require__(57147);
+var min = __nccwpck_require__(41017);
+var pow = __nccwpck_require__(56947);
+var round = __nccwpck_require__(42621);
+var sign = __nccwpck_require__(30156);
+
+var $Function = Function;
+
+// eslint-disable-next-line consistent-return
+var getEvalledConstructor = function (expressionSyntax) {
+	try {
+		return $Function('"use strict"; return (' + expressionSyntax + ').constructor;')();
+	} catch (e) {}
+};
+
+var $gOPD = __nccwpck_require__(33170);
+var $defineProperty = __nccwpck_require__(79094);
+
+var throwTypeError = function () {
+	throw new $TypeError();
+};
+var ThrowTypeError = $gOPD
+	? (function () {
+		try {
+			// eslint-disable-next-line no-unused-expressions, no-caller, no-restricted-properties
+			arguments.callee; // IE 8 does not throw here
+			return throwTypeError;
+		} catch (calleeThrows) {
+			try {
+				// IE 8 throws on Object.getOwnPropertyDescriptor(arguments, '')
+				return $gOPD(arguments, 'callee').get;
+			} catch (gOPDthrows) {
+				return throwTypeError;
+			}
+		}
+	}())
+	: throwTypeError;
+
+var hasSymbols = __nccwpck_require__(23336)();
+
+var getProto = __nccwpck_require__(81967);
+var $ObjectGPO = __nccwpck_require__(91311);
+var $ReflectGPO = __nccwpck_require__(48681);
+
+var $apply = __nccwpck_require__(33945);
+var $call = __nccwpck_require__(88093);
+
+var needsEval = {};
+
+var TypedArray = typeof Uint8Array === 'undefined' || !getProto ? undefined : getProto(Uint8Array);
+
+var INTRINSICS = {
+	__proto__: null,
+	'%AggregateError%': typeof AggregateError === 'undefined' ? undefined : AggregateError,
+	'%Array%': Array,
+	'%ArrayBuffer%': typeof ArrayBuffer === 'undefined' ? undefined : ArrayBuffer,
+	'%ArrayIteratorPrototype%': hasSymbols && getProto ? getProto([][Symbol.iterator]()) : undefined,
+	'%AsyncFromSyncIteratorPrototype%': undefined,
+	'%AsyncFunction%': needsEval,
+	'%AsyncGenerator%': needsEval,
+	'%AsyncGeneratorFunction%': needsEval,
+	'%AsyncIteratorPrototype%': needsEval,
+	'%Atomics%': typeof Atomics === 'undefined' ? undefined : Atomics,
+	'%BigInt%': typeof BigInt === 'undefined' ? undefined : BigInt,
+	'%BigInt64Array%': typeof BigInt64Array === 'undefined' ? undefined : BigInt64Array,
+	'%BigUint64Array%': typeof BigUint64Array === 'undefined' ? undefined : BigUint64Array,
+	'%Boolean%': Boolean,
+	'%DataView%': typeof DataView === 'undefined' ? undefined : DataView,
+	'%Date%': Date,
+	'%decodeURI%': decodeURI,
+	'%decodeURIComponent%': decodeURIComponent,
+	'%encodeURI%': encodeURI,
+	'%encodeURIComponent%': encodeURIComponent,
+	'%Error%': $Error,
+	'%eval%': eval, // eslint-disable-line no-eval
+	'%EvalError%': $EvalError,
+	'%Float16Array%': typeof Float16Array === 'undefined' ? undefined : Float16Array,
+	'%Float32Array%': typeof Float32Array === 'undefined' ? undefined : Float32Array,
+	'%Float64Array%': typeof Float64Array === 'undefined' ? undefined : Float64Array,
+	'%FinalizationRegistry%': typeof FinalizationRegistry === 'undefined' ? undefined : FinalizationRegistry,
+	'%Function%': $Function,
+	'%GeneratorFunction%': needsEval,
+	'%Int8Array%': typeof Int8Array === 'undefined' ? undefined : Int8Array,
+	'%Int16Array%': typeof Int16Array === 'undefined' ? undefined : Int16Array,
+	'%Int32Array%': typeof Int32Array === 'undefined' ? undefined : Int32Array,
+	'%isFinite%': isFinite,
+	'%isNaN%': isNaN,
+	'%IteratorPrototype%': hasSymbols && getProto ? getProto(getProto([][Symbol.iterator]())) : undefined,
+	'%JSON%': typeof JSON === 'object' ? JSON : undefined,
+	'%Map%': typeof Map === 'undefined' ? undefined : Map,
+	'%MapIteratorPrototype%': typeof Map === 'undefined' || !hasSymbols || !getProto ? undefined : getProto(new Map()[Symbol.iterator]()),
+	'%Math%': Math,
+	'%Number%': Number,
+	'%Object%': $Object,
+	'%Object.getOwnPropertyDescriptor%': $gOPD,
+	'%parseFloat%': parseFloat,
+	'%parseInt%': parseInt,
+	'%Promise%': typeof Promise === 'undefined' ? undefined : Promise,
+	'%Proxy%': typeof Proxy === 'undefined' ? undefined : Proxy,
+	'%RangeError%': $RangeError,
+	'%ReferenceError%': $ReferenceError,
+	'%Reflect%': typeof Reflect === 'undefined' ? undefined : Reflect,
+	'%RegExp%': RegExp,
+	'%Set%': typeof Set === 'undefined' ? undefined : Set,
+	'%SetIteratorPrototype%': typeof Set === 'undefined' || !hasSymbols || !getProto ? undefined : getProto(new Set()[Symbol.iterator]()),
+	'%SharedArrayBuffer%': typeof SharedArrayBuffer === 'undefined' ? undefined : SharedArrayBuffer,
+	'%String%': String,
+	'%StringIteratorPrototype%': hasSymbols && getProto ? getProto(''[Symbol.iterator]()) : undefined,
+	'%Symbol%': hasSymbols ? Symbol : undefined,
+	'%SyntaxError%': $SyntaxError,
+	'%ThrowTypeError%': ThrowTypeError,
+	'%TypedArray%': TypedArray,
+	'%TypeError%': $TypeError,
+	'%Uint8Array%': typeof Uint8Array === 'undefined' ? undefined : Uint8Array,
+	'%Uint8ClampedArray%': typeof Uint8ClampedArray === 'undefined' ? undefined : Uint8ClampedArray,
+	'%Uint16Array%': typeof Uint16Array === 'undefined' ? undefined : Uint16Array,
+	'%Uint32Array%': typeof Uint32Array === 'undefined' ? undefined : Uint32Array,
+	'%URIError%': $URIError,
+	'%WeakMap%': typeof WeakMap === 'undefined' ? undefined : WeakMap,
+	'%WeakRef%': typeof WeakRef === 'undefined' ? undefined : WeakRef,
+	'%WeakSet%': typeof WeakSet === 'undefined' ? undefined : WeakSet,
+
+	'%Function.prototype.call%': $call,
+	'%Function.prototype.apply%': $apply,
+	'%Object.defineProperty%': $defineProperty,
+	'%Object.getPrototypeOf%': $ObjectGPO,
+	'%Math.abs%': abs,
+	'%Math.floor%': floor,
+	'%Math.max%': max,
+	'%Math.min%': min,
+	'%Math.pow%': pow,
+	'%Math.round%': round,
+	'%Math.sign%': sign,
+	'%Reflect.getPrototypeOf%': $ReflectGPO
+};
+
+if (getProto) {
+	try {
+		null.error; // eslint-disable-line no-unused-expressions
+	} catch (e) {
+		// https://github.com/tc39/proposal-shadowrealm/pull/384#issuecomment-1364264229
+		var errorProto = getProto(getProto(e));
+		INTRINSICS['%Error.prototype%'] = errorProto;
+	}
+}
+
+var doEval = function doEval(name) {
+	var value;
+	if (name === '%AsyncFunction%') {
+		value = getEvalledConstructor('async function () {}');
+	} else if (name === '%GeneratorFunction%') {
+		value = getEvalledConstructor('function* () {}');
+	} else if (name === '%AsyncGeneratorFunction%') {
+		value = getEvalledConstructor('async function* () {}');
+	} else if (name === '%AsyncGenerator%') {
+		var fn = doEval('%AsyncGeneratorFunction%');
+		if (fn) {
+			value = fn.prototype;
+		}
+	} else if (name === '%AsyncIteratorPrototype%') {
+		var gen = doEval('%AsyncGenerator%');
+		if (gen && getProto) {
+			value = getProto(gen.prototype);
+		}
+	}
+
+	INTRINSICS[name] = value;
+
+	return value;
+};
+
+var LEGACY_ALIASES = {
+	__proto__: null,
+	'%ArrayBufferPrototype%': ['ArrayBuffer', 'prototype'],
+	'%ArrayPrototype%': ['Array', 'prototype'],
+	'%ArrayProto_entries%': ['Array', 'prototype', 'entries'],
+	'%ArrayProto_forEach%': ['Array', 'prototype', 'forEach'],
+	'%ArrayProto_keys%': ['Array', 'prototype', 'keys'],
+	'%ArrayProto_values%': ['Array', 'prototype', 'values'],
+	'%AsyncFunctionPrototype%': ['AsyncFunction', 'prototype'],
+	'%AsyncGenerator%': ['AsyncGeneratorFunction', 'prototype'],
+	'%AsyncGeneratorPrototype%': ['AsyncGeneratorFunction', 'prototype', 'prototype'],
+	'%BooleanPrototype%': ['Boolean', 'prototype'],
+	'%DataViewPrototype%': ['DataView', 'prototype'],
+	'%DatePrototype%': ['Date', 'prototype'],
+	'%ErrorPrototype%': ['Error', 'prototype'],
+	'%EvalErrorPrototype%': ['EvalError', 'prototype'],
+	'%Float32ArrayPrototype%': ['Float32Array', 'prototype'],
+	'%Float64ArrayPrototype%': ['Float64Array', 'prototype'],
+	'%FunctionPrototype%': ['Function', 'prototype'],
+	'%Generator%': ['GeneratorFunction', 'prototype'],
+	'%GeneratorPrototype%': ['GeneratorFunction', 'prototype', 'prototype'],
+	'%Int8ArrayPrototype%': ['Int8Array', 'prototype'],
+	'%Int16ArrayPrototype%': ['Int16Array', 'prototype'],
+	'%Int32ArrayPrototype%': ['Int32Array', 'prototype'],
+	'%JSONParse%': ['JSON', 'parse'],
+	'%JSONStringify%': ['JSON', 'stringify'],
+	'%MapPrototype%': ['Map', 'prototype'],
+	'%NumberPrototype%': ['Number', 'prototype'],
+	'%ObjectPrototype%': ['Object', 'prototype'],
+	'%ObjProto_toString%': ['Object', 'prototype', 'toString'],
+	'%ObjProto_valueOf%': ['Object', 'prototype', 'valueOf'],
+	'%PromisePrototype%': ['Promise', 'prototype'],
+	'%PromiseProto_then%': ['Promise', 'prototype', 'then'],
+	'%Promise_all%': ['Promise', 'all'],
+	'%Promise_reject%': ['Promise', 'reject'],
+	'%Promise_resolve%': ['Promise', 'resolve'],
+	'%RangeErrorPrototype%': ['RangeError', 'prototype'],
+	'%ReferenceErrorPrototype%': ['ReferenceError', 'prototype'],
+	'%RegExpPrototype%': ['RegExp', 'prototype'],
+	'%SetPrototype%': ['Set', 'prototype'],
+	'%SharedArrayBufferPrototype%': ['SharedArrayBuffer', 'prototype'],
+	'%StringPrototype%': ['String', 'prototype'],
+	'%SymbolPrototype%': ['Symbol', 'prototype'],
+	'%SyntaxErrorPrototype%': ['SyntaxError', 'prototype'],
+	'%TypedArrayPrototype%': ['TypedArray', 'prototype'],
+	'%TypeErrorPrototype%': ['TypeError', 'prototype'],
+	'%Uint8ArrayPrototype%': ['Uint8Array', 'prototype'],
+	'%Uint8ClampedArrayPrototype%': ['Uint8ClampedArray', 'prototype'],
+	'%Uint16ArrayPrototype%': ['Uint16Array', 'prototype'],
+	'%Uint32ArrayPrototype%': ['Uint32Array', 'prototype'],
+	'%URIErrorPrototype%': ['URIError', 'prototype'],
+	'%WeakMapPrototype%': ['WeakMap', 'prototype'],
+	'%WeakSetPrototype%': ['WeakSet', 'prototype']
+};
+
+var bind = __nccwpck_require__(37564);
+var hasOwn = __nccwpck_require__(54076);
+var $concat = bind.call($call, Array.prototype.concat);
+var $spliceApply = bind.call($apply, Array.prototype.splice);
+var $replace = bind.call($call, String.prototype.replace);
+var $strSlice = bind.call($call, String.prototype.slice);
+var $exec = bind.call($call, RegExp.prototype.exec);
+
+/* adapted from https://github.com/lodash/lodash/blob/4.17.15/dist/lodash.js#L6735-L6744 */
+var rePropName = /[^%.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|%$))/g;
+var reEscapeChar = /\\(\\)?/g; /** Used to match backslashes in property paths. */
+var stringToPath = function stringToPath(string) {
+	var first = $strSlice(string, 0, 1);
+	var last = $strSlice(string, -1);
+	if (first === '%' && last !== '%') {
+		throw new $SyntaxError('invalid intrinsic syntax, expected closing `%`');
+	} else if (last === '%' && first !== '%') {
+		throw new $SyntaxError('invalid intrinsic syntax, expected opening `%`');
+	}
+	var result = [];
+	$replace(string, rePropName, function (match, number, quote, subString) {
+		result[result.length] = quote ? $replace(subString, reEscapeChar, '$1') : number || match;
+	});
+	return result;
+};
+/* end adaptation */
+
+var getBaseIntrinsic = function getBaseIntrinsic(name, allowMissing) {
+	var intrinsicName = name;
+	var alias;
+	if (hasOwn(LEGACY_ALIASES, intrinsicName)) {
+		alias = LEGACY_ALIASES[intrinsicName];
+		intrinsicName = '%' + alias[0] + '%';
+	}
+
+	if (hasOwn(INTRINSICS, intrinsicName)) {
+		var value = INTRINSICS[intrinsicName];
+		if (value === needsEval) {
+			value = doEval(intrinsicName);
+		}
+		if (typeof value === 'undefined' && !allowMissing) {
+			throw new $TypeError('intrinsic ' + name + ' exists, but is not available. Please file an issue!');
+		}
+
+		return {
+			alias: alias,
+			name: intrinsicName,
+			value: value
+		};
+	}
+
+	throw new $SyntaxError('intrinsic ' + name + ' does not exist!');
+};
+
+module.exports = function GetIntrinsic(name, allowMissing) {
+	if (typeof name !== 'string' || name.length === 0) {
+		throw new $TypeError('intrinsic name must be a non-empty string');
+	}
+	if (arguments.length > 1 && typeof allowMissing !== 'boolean') {
+		throw new $TypeError('"allowMissing" argument must be a boolean');
+	}
+
+	if ($exec(/^%?[^%]*%?$/, name) === null) {
+		throw new $SyntaxError('`%` may not be present anywhere but at the beginning and end of the intrinsic name');
+	}
+	var parts = stringToPath(name);
+	var intrinsicBaseName = parts.length > 0 ? parts[0] : '';
+
+	var intrinsic = getBaseIntrinsic('%' + intrinsicBaseName + '%', allowMissing);
+	var intrinsicRealName = intrinsic.name;
+	var value = intrinsic.value;
+	var skipFurtherCaching = false;
+
+	var alias = intrinsic.alias;
+	if (alias) {
+		intrinsicBaseName = alias[0];
+		$spliceApply(parts, $concat([0, 1], alias));
+	}
+
+	for (var i = 1, isOwn = true; i < parts.length; i += 1) {
+		var part = parts[i];
+		var first = $strSlice(part, 0, 1);
+		var last = $strSlice(part, -1);
+		if (
+			(
+				(first === '"' || first === "'" || first === '`')
+				|| (last === '"' || last === "'" || last === '`')
+			)
+			&& first !== last
+		) {
+			throw new $SyntaxError('property names with quotes must have matching quotes');
+		}
+		if (part === 'constructor' || !isOwn) {
+			skipFurtherCaching = true;
+		}
+
+		intrinsicBaseName += '.' + part;
+		intrinsicRealName = '%' + intrinsicBaseName + '%';
+
+		if (hasOwn(INTRINSICS, intrinsicRealName)) {
+			value = INTRINSICS[intrinsicRealName];
+		} else if (value != null) {
+			if (!(part in value)) {
+				if (!allowMissing) {
+					throw new $TypeError('base intrinsic for ' + name + ' exists, but the property is not available.');
+				}
+				return void undefined;
+			}
+			if ($gOPD && (i + 1) >= parts.length) {
+				var desc = $gOPD(value, part);
+				isOwn = !!desc;
+
+				// By convention, when a data property is converted to an accessor
+				// property to emulate a data property that does not suffer from
+				// the override mistake, that accessor's getter is marked with
+				// an `originalValue` property. Here, when we detect this, we
+				// uphold the illusion by pretending to see that original data
+				// property, i.e., returning the value rather than the getter
+				// itself.
+				if (isOwn && 'get' in desc && !('originalValue' in desc.get)) {
+					value = desc.get;
+				} else {
+					value = value[part];
+				}
+			} else {
+				isOwn = hasOwn(value, part);
+				value = value[part];
+			}
+
+			if (isOwn && !skipFurtherCaching) {
+				INTRINSICS[intrinsicRealName] = value;
+			}
+		}
+	}
+	return value;
+};
+
+
+/***/ }),
+
+/***/ 91311:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+var $Object = __nccwpck_require__(95399);
+
+/** @type {import('./Object.getPrototypeOf')} */
+module.exports = $Object.getPrototypeOf || null;
+
+
+/***/ }),
+
+/***/ 48681:
+/***/ ((module) => {
+
+
+
+/** @type {import('./Reflect.getPrototypeOf')} */
+module.exports = (typeof Reflect !== 'undefined' && Reflect.getPrototypeOf) || null;
+
+
+/***/ }),
+
+/***/ 81967:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+var reflectGetProto = __nccwpck_require__(48681);
+var originalGetProto = __nccwpck_require__(91311);
+
+var getDunderProto = __nccwpck_require__(26669);
+
+/** @type {import('.')} */
+module.exports = reflectGetProto
+	? function getProto(O) {
+		// @ts-expect-error TS can't narrow inside a closure, for some reason
+		return reflectGetProto(O);
+	}
+	: originalGetProto
+		? function getProto(O) {
+			if (!O || (typeof O !== 'object' && typeof O !== 'function')) {
+				throw new TypeError('getProto: not an object');
+			}
+			// @ts-expect-error TS can't narrow inside a closure, for some reason
+			return originalGetProto(O);
+		}
+		: getDunderProto
+			? function getProto(O) {
+				// @ts-expect-error TS can't narrow inside a closure, for some reason
+				return getDunderProto(O);
+			}
+			: null;
+
+
+/***/ }),
+
+/***/ 1174:
+/***/ ((module) => {
+
+
+
+/** @type {import('./gOPD')} */
+module.exports = Object.getOwnPropertyDescriptor;
+
+
+/***/ }),
+
+/***/ 33170:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+/** @type {import('.')} */
+var $gOPD = __nccwpck_require__(1174);
+
+if ($gOPD) {
+	try {
+		$gOPD([], 'length');
+	} catch (e) {
+		// IE 8 has a broken gOPD
+		$gOPD = null;
+	}
+}
+
+module.exports = $gOPD;
+
+
+/***/ }),
+
+/***/ 83813:
+/***/ ((module) => {
+
+
+
+module.exports = (flag, argv = process.argv) => {
+	const prefix = flag.startsWith('-') ? '' : (flag.length === 1 ? '-' : '--');
+	const position = argv.indexOf(prefix + flag);
+	const terminatorPosition = argv.indexOf('--');
+	return position !== -1 && (terminatorPosition === -1 || position < terminatorPosition);
+};
+
+
+/***/ }),
+
+/***/ 23336:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+var origSymbol = typeof Symbol !== 'undefined' && Symbol;
+var hasSymbolSham = __nccwpck_require__(61114);
+
+/** @type {import('.')} */
+module.exports = function hasNativeSymbols() {
+	if (typeof origSymbol !== 'function') { return false; }
+	if (typeof Symbol !== 'function') { return false; }
+	if (typeof origSymbol('foo') !== 'symbol') { return false; }
+	if (typeof Symbol('bar') !== 'symbol') { return false; }
+
+	return hasSymbolSham();
+};
+
+
+/***/ }),
+
+/***/ 61114:
+/***/ ((module) => {
+
+
+
+/** @type {import('./shams')} */
+/* eslint complexity: [2, 18], max-statements: [2, 33] */
+module.exports = function hasSymbols() {
+	if (typeof Symbol !== 'function' || typeof Object.getOwnPropertySymbols !== 'function') { return false; }
+	if (typeof Symbol.iterator === 'symbol') { return true; }
+
+	/** @type {{ [k in symbol]?: unknown }} */
+	var obj = {};
+	var sym = Symbol('test');
+	var symObj = Object(sym);
+	if (typeof sym === 'string') { return false; }
+
+	if (Object.prototype.toString.call(sym) !== '[object Symbol]') { return false; }
+	if (Object.prototype.toString.call(symObj) !== '[object Symbol]') { return false; }
+
+	// temp disabled per https://github.com/ljharb/object.assign/issues/17
+	// if (sym instanceof Symbol) { return false; }
+	// temp disabled per https://github.com/WebReflection/get-own-property-symbols/issues/4
+	// if (!(symObj instanceof Symbol)) { return false; }
+
+	// if (typeof Symbol.prototype.toString !== 'function') { return false; }
+	// if (String(sym) !== Symbol.prototype.toString.call(sym)) { return false; }
+
+	var symVal = 42;
+	obj[sym] = symVal;
+	for (var _ in obj) { return false; } // eslint-disable-line no-restricted-syntax, no-unreachable-loop
+	if (typeof Object.keys === 'function' && Object.keys(obj).length !== 0) { return false; }
+
+	if (typeof Object.getOwnPropertyNames === 'function' && Object.getOwnPropertyNames(obj).length !== 0) { return false; }
+
+	var syms = Object.getOwnPropertySymbols(obj);
+	if (syms.length !== 1 || syms[0] !== sym) { return false; }
+
+	if (!Object.prototype.propertyIsEnumerable.call(obj, sym)) { return false; }
+
+	if (typeof Object.getOwnPropertyDescriptor === 'function') {
+		// eslint-disable-next-line no-extra-parens
+		var descriptor = /** @type {PropertyDescriptor} */ (Object.getOwnPropertyDescriptor(obj, sym));
+		if (descriptor.value !== symVal || descriptor.enumerable !== true) { return false; }
+	}
+
+	return true;
+};
+
+
+/***/ }),
+
+/***/ 85479:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+var hasSymbols = __nccwpck_require__(61114);
+
+/** @type {import('.')} */
+module.exports = function hasToStringTagShams() {
+	return hasSymbols() && !!Symbol.toStringTag;
+};
+
+
+/***/ }),
+
+/***/ 54076:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+var call = Function.prototype.call;
+var $hasOwn = Object.prototype.hasOwnProperty;
+var bind = __nccwpck_require__(37564);
+
+/** @type {import('.')} */
+module.exports = bind.call(call, $hasOwn);
 
 
 /***/ }),
@@ -13346,24 +13287,36 @@ exports.Builds = Builds;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AgileClient = void 0;
-const clients_1 = __nccwpck_require__(2421);
-const __1 = __nccwpck_require__(28665);
-class AgileClient extends clients_1.BaseClient {
+const baseClient_1 = __nccwpck_require__(35331);
+const backlog_1 = __nccwpck_require__(98214);
+const board_1 = __nccwpck_require__(85589);
+const builds_1 = __nccwpck_require__(79552);
+const deployments_1 = __nccwpck_require__(71817);
+const developmentInformation_1 = __nccwpck_require__(47044);
+const devopsComponents_1 = __nccwpck_require__(50800);
+const epic_1 = __nccwpck_require__(96040);
+const featureFlags_1 = __nccwpck_require__(34796);
+const issue_1 = __nccwpck_require__(9706);
+const operations_1 = __nccwpck_require__(72995);
+const remoteLinks_1 = __nccwpck_require__(70722);
+const securityInformation_1 = __nccwpck_require__(80701);
+const sprint_1 = __nccwpck_require__(17485);
+class AgileClient extends baseClient_1.BaseClient {
     constructor() {
         super(...arguments);
-        this.backlog = new __1.Backlog(this);
-        this.board = new __1.Board(this);
-        this.builds = new __1.Builds(this);
-        this.deployments = new __1.Deployments(this);
-        this.developmentInformation = new __1.DevelopmentInformation(this);
-        this.devopsComponents = new __1.DevopsComponents(this);
-        this.epic = new __1.Epic(this);
-        this.featureFlags = new __1.FeatureFlags(this);
-        this.issue = new __1.Issue(this);
-        this.operations = new __1.Operations(this);
-        this.remoteLinks = new __1.RemoteLinks(this);
-        this.securityInformation = new __1.SecurityInformation(this);
-        this.sprint = new __1.Sprint(this);
+        this.backlog = new backlog_1.Backlog(this);
+        this.board = new board_1.Board(this);
+        this.builds = new builds_1.Builds(this);
+        this.deployments = new deployments_1.Deployments(this);
+        this.developmentInformation = new developmentInformation_1.DevelopmentInformation(this);
+        this.devopsComponents = new devopsComponents_1.DevopsComponents(this);
+        this.epic = new epic_1.Epic(this);
+        this.featureFlags = new featureFlags_1.FeatureFlags(this);
+        this.issue = new issue_1.Issue(this);
+        this.operations = new operations_1.Operations(this);
+        this.remoteLinks = new remoteLinks_1.RemoteLinks(this);
+        this.securityInformation = new securityInformation_1.SecurityInformation(this);
+        this.sprint = new sprint_1.Sprint(this);
     }
 }
 exports.AgileClient = AgileClient;
@@ -13801,8 +13754,8 @@ tslib_1.__exportStar(__nccwpck_require__(72995), exports);
 tslib_1.__exportStar(__nccwpck_require__(70722), exports);
 tslib_1.__exportStar(__nccwpck_require__(80701), exports);
 tslib_1.__exportStar(__nccwpck_require__(17485), exports);
-exports.AgileModels = __nccwpck_require__(44516);
-exports.AgileParameters = __nccwpck_require__(16214);
+exports.AgileModels = tslib_1.__importStar(__nccwpck_require__(44516));
+exports.AgileParameters = tslib_1.__importStar(__nccwpck_require__(16214));
 tslib_1.__exportStar(__nccwpck_require__(24929), exports);
 //# sourceMappingURL=index.js.map
 
@@ -15896,7 +15849,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BaseClient = void 0;
 const tslib_1 = __nccwpck_require__(61860);
-const axios_1 = __nccwpck_require__(68164);
+const axios_1 = tslib_1.__importDefault(__nccwpck_require__(68164));
 const authenticationService_1 = __nccwpck_require__(61675);
 const httpException_1 = __nccwpck_require__(1804);
 const STRICT_GDPR_FLAG = 'x-atlassian-force-account-id';
@@ -16236,10 +16189,10 @@ tslib_1.__exportStar(__nccwpck_require__(91378), exports);
 tslib_1.__exportStar(__nccwpck_require__(32667), exports);
 tslib_1.__exportStar(__nccwpck_require__(89901), exports);
 tslib_1.__exportStar(__nccwpck_require__(97933), exports);
-exports.Agile = __nccwpck_require__(28665);
-exports.Version2 = __nccwpck_require__(37877);
-exports.Version3 = __nccwpck_require__(74062);
-exports.ServiceDesk = __nccwpck_require__(1067);
+exports.Agile = tslib_1.__importStar(__nccwpck_require__(28665));
+exports.Version2 = tslib_1.__importStar(__nccwpck_require__(37877));
+exports.Version3 = tslib_1.__importStar(__nccwpck_require__(74062));
+exports.ServiceDesk = tslib_1.__importStar(__nccwpck_require__(1067));
 //# sourceMappingURL=index.js.map
 
 /***/ }),
@@ -16298,7 +16251,7 @@ tslib_1.__exportStar(__nccwpck_require__(12062), exports);
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ServiceDeskClient = void 0;
-const clients_1 = __nccwpck_require__(2421);
+const baseClient_1 = __nccwpck_require__(35331);
 const customer_1 = __nccwpck_require__(35895);
 const info_1 = __nccwpck_require__(69603);
 const insight_1 = __nccwpck_require__(25651);
@@ -16307,7 +16260,7 @@ const organization_1 = __nccwpck_require__(95540);
 const request_1 = __nccwpck_require__(1850);
 const requestType_1 = __nccwpck_require__(19122);
 const serviceDesk_1 = __nccwpck_require__(94009);
-class ServiceDeskClient extends clients_1.BaseClient {
+class ServiceDeskClient extends baseClient_1.BaseClient {
     constructor() {
         super(...arguments);
         this.customer = new customer_1.Customer(this);
@@ -16370,8 +16323,8 @@ tslib_1.__exportStar(__nccwpck_require__(95540), exports);
 tslib_1.__exportStar(__nccwpck_require__(1850), exports);
 tslib_1.__exportStar(__nccwpck_require__(19122), exports);
 tslib_1.__exportStar(__nccwpck_require__(94009), exports);
-exports.ServiceDeskModels = __nccwpck_require__(28054);
-exports.ServiceDeskParameters = __nccwpck_require__(6748);
+exports.ServiceDeskModels = tslib_1.__importStar(__nccwpck_require__(28054));
+exports.ServiceDeskParameters = tslib_1.__importStar(__nccwpck_require__(6748));
 tslib_1.__exportStar(__nccwpck_require__(17403), exports);
 //# sourceMappingURL=index.js.map
 
@@ -18509,7 +18462,7 @@ exports.RequestType = RequestType;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ServiceDesk = void 0;
 const tslib_1 = __nccwpck_require__(61860);
-const FormData = __nccwpck_require__(82805);
+const formdata_node_1 = __nccwpck_require__(34859);
 class ServiceDesk {
     constructor(client) {
         this.client = client;
@@ -18538,14 +18491,42 @@ class ServiceDesk {
     }
     attachTemporaryFile(parameters, callback) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            var _a;
-            const formData = new FormData();
+            var _a, e_1, _b, _c;
+            const formData = new formdata_node_1.FormData();
             const attachments = Array.isArray(parameters.attachment) ? parameters.attachment : [parameters.attachment];
-            attachments.forEach(attachment => formData.append('file', attachment.file, attachment.filename));
+            const { default: mime } = yield __nccwpck_require__.e(/* import() */ 86).then(__nccwpck_require__.bind(__nccwpck_require__, 15086));
+            let Readable;
+            if (typeof window === 'undefined') {
+                const { Readable: NodeReadable } = yield Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 2203, 23));
+                Readable = NodeReadable;
+            }
+            try {
+                // eslint-disable-next-line no-restricted-syntax
+                for (var _d = true, attachments_1 = tslib_1.__asyncValues(attachments), attachments_1_1; attachments_1_1 = yield attachments_1.next(), _a = attachments_1_1.done, !_a; _d = true) {
+                    _c = attachments_1_1.value;
+                    _d = false;
+                    const attachment = _c;
+                    const file = yield this._convertToFile(attachment, mime, Readable);
+                    if (!(file instanceof formdata_node_1.File || file instanceof Blob)) {
+                        throw new Error(`Unsupported file type for attachment: ${typeof file}`);
+                    }
+                    formData.append('file', file, attachment.filename);
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = attachments_1.return)) yield _b.call(attachments_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
             const config = {
                 url: `/rest/servicedeskapi/servicedesk/${parameters.serviceDeskId}/attachTemporaryFile`,
                 method: 'POST',
-                headers: Object.assign({ 'X-Atlassian-Token': 'no-check', 'Content-Type': 'multipart/form-data' }, (_a = formData.getHeaders) === null || _a === void 0 ? void 0 : _a.call(formData)),
+                headers: {
+                    'X-Atlassian-Token': 'no-check',
+                    'Content-Type': 'multipart/form-data',
+                },
                 data: formData,
             };
             return this.client.sendRequest(config, callback);
@@ -18783,6 +18764,58 @@ class ServiceDesk {
                 },
             };
             return this.client.sendRequest(config, callback);
+        });
+    }
+    _convertToFile(attachment, mime, Readable) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const mimeType = (_a = attachment.mimeType) !== null && _a !== void 0 ? _a : (mime.getType(attachment.filename) || undefined);
+            if (attachment.file instanceof Blob || attachment.file instanceof formdata_node_1.File) {
+                return attachment.file;
+            }
+            if (typeof attachment.file === 'string') {
+                return new formdata_node_1.File([attachment.file], attachment.filename, { type: mimeType });
+            }
+            if (Readable && attachment.file instanceof Readable) {
+                return this._streamToBlob(attachment.file, attachment.filename, mimeType);
+            }
+            if (attachment.file instanceof ReadableStream) {
+                return this._streamToBlob(attachment.file, attachment.filename, mimeType);
+            }
+            if (ArrayBuffer.isView(attachment.file) || attachment.file instanceof ArrayBuffer) {
+                return new formdata_node_1.File([attachment.file], attachment.filename, { type: mimeType });
+            }
+            throw new Error('Unsupported attachment file type.');
+        });
+    }
+    _streamToBlob(stream, filename, mimeType) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            if (typeof window === 'undefined' && stream instanceof (yield Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 2203, 23))).Readable) {
+                return new Promise((resolve, reject) => {
+                    const chunks = [];
+                    stream.on('data', chunk => chunks.push(chunk));
+                    stream.on('end', () => {
+                        const blob = new Blob(chunks, { type: mimeType });
+                        resolve(new formdata_node_1.File([blob], filename, { type: mimeType }));
+                    });
+                    stream.on('error', reject);
+                });
+            }
+            if (stream instanceof ReadableStream) {
+                const reader = stream.getReader();
+                const chunks = [];
+                let done = false;
+                while (!done) {
+                    // eslint-disable-next-line no-await-in-loop
+                    const { value, done: streamDone } = yield reader.read();
+                    if (value)
+                        chunks.push(value);
+                    done = streamDone;
+                }
+                const blob = new Blob(chunks, { type: mimeType });
+                return new formdata_node_1.File([blob], filename, { type: mimeType });
+            }
+            throw new Error('Unsupported stream type.');
         });
     }
 }
@@ -19345,96 +19378,180 @@ tslib_1.__exportStar(__nccwpck_require__(40692), exports);
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Version2Client = void 0;
-const clients_1 = __nccwpck_require__(2421);
-const __1 = __nccwpck_require__(37877);
-class Version2Client extends clients_1.BaseClient {
+const baseClient_1 = __nccwpck_require__(35331);
+const announcementBanner_1 = __nccwpck_require__(4996);
+const applicationRoles_1 = __nccwpck_require__(12230);
+const appMigration_1 = __nccwpck_require__(28472);
+const appProperties_1 = __nccwpck_require__(74395);
+const auditRecords_1 = __nccwpck_require__(51818);
+const avatars_1 = __nccwpck_require__(12179);
+const dashboards_1 = __nccwpck_require__(76124);
+const dynamicModules_1 = __nccwpck_require__(21051);
+const filters_1 = __nccwpck_require__(69634);
+const filterSharing_1 = __nccwpck_require__(63331);
+const groupAndUserPicker_1 = __nccwpck_require__(8100);
+const groups_1 = __nccwpck_require__(33209);
+const issueAttachments_1 = __nccwpck_require__(36074);
+const issueCommentProperties_1 = __nccwpck_require__(9728);
+const issueComments_1 = __nccwpck_require__(70812);
+const issueCustomFieldConfigurationApps_1 = __nccwpck_require__(29015);
+const issueCustomFieldContexts_1 = __nccwpck_require__(6093);
+const issueCustomFieldOptions_1 = __nccwpck_require__(91059);
+const issueCustomFieldOptionsApps_1 = __nccwpck_require__(9947);
+const issueCustomFieldValuesApps_1 = __nccwpck_require__(85447);
+const issueFieldConfigurations_1 = __nccwpck_require__(6723);
+const issueFields_1 = __nccwpck_require__(26715);
+const issueLinks_1 = __nccwpck_require__(85001);
+const issueLinkTypes_1 = __nccwpck_require__(39889);
+const issueNavigatorSettings_1 = __nccwpck_require__(37120);
+const issueNotificationSchemes_1 = __nccwpck_require__(32445);
+const issuePriorities_1 = __nccwpck_require__(76470);
+const issueProperties_1 = __nccwpck_require__(74171);
+const issueRemoteLinks_1 = __nccwpck_require__(39499);
+const issueResolutions_1 = __nccwpck_require__(98051);
+const issues_1 = __nccwpck_require__(66933);
+const issueSearch_1 = __nccwpck_require__(58930);
+const issueSecurityLevel_1 = __nccwpck_require__(67744);
+const issueSecuritySchemes_1 = __nccwpck_require__(7506);
+const issueTypeProperties_1 = __nccwpck_require__(4947);
+const issueTypes_1 = __nccwpck_require__(39613);
+const issueTypeSchemes_1 = __nccwpck_require__(34008);
+const issueTypeScreenSchemes_1 = __nccwpck_require__(53412);
+const issueVotes_1 = __nccwpck_require__(1173);
+const issueWatchers_1 = __nccwpck_require__(61259);
+const issueWorklogProperties_1 = __nccwpck_require__(30580);
+const issueWorklogs_1 = __nccwpck_require__(97304);
+const jiraExpressions_1 = __nccwpck_require__(94650);
+const jiraSettings_1 = __nccwpck_require__(5436);
+const jQL_1 = __nccwpck_require__(24682);
+const jqlFunctionsApps_1 = __nccwpck_require__(48985);
+const labels_1 = __nccwpck_require__(98750);
+const licenseMetrics_1 = __nccwpck_require__(58301);
+const myself_1 = __nccwpck_require__(30237);
+const permissions_1 = __nccwpck_require__(96169);
+const permissionSchemes_1 = __nccwpck_require__(50652);
+const projectAvatars_1 = __nccwpck_require__(79108);
+const projectCategories_1 = __nccwpck_require__(37504);
+const projectComponents_1 = __nccwpck_require__(97160);
+const projectEmail_1 = __nccwpck_require__(11038);
+const projectFeatures_1 = __nccwpck_require__(21319);
+const projectKeyAndNameValidation_1 = __nccwpck_require__(41228);
+const projectPermissionSchemes_1 = __nccwpck_require__(37843);
+const projectProperties_1 = __nccwpck_require__(86913);
+const projectRoleActors_1 = __nccwpck_require__(75738);
+const projectRoles_1 = __nccwpck_require__(79415);
+const projects_1 = __nccwpck_require__(9427);
+const projectTypes_1 = __nccwpck_require__(14123);
+const projectVersions_1 = __nccwpck_require__(26753);
+const screens_1 = __nccwpck_require__(56072);
+const screenSchemes_1 = __nccwpck_require__(20537);
+const screenTabFields_1 = __nccwpck_require__(36879);
+const screenTabs_1 = __nccwpck_require__(31921);
+const serverInfo_1 = __nccwpck_require__(29050);
+const status_1 = __nccwpck_require__(44487);
+const tasks_1 = __nccwpck_require__(43279);
+const timeTracking_1 = __nccwpck_require__(51885);
+const uIModificationsApps_1 = __nccwpck_require__(97046);
+const userProperties_1 = __nccwpck_require__(42391);
+const users_1 = __nccwpck_require__(74953);
+const userSearch_1 = __nccwpck_require__(84646);
+const webhooks_1 = __nccwpck_require__(32771);
+const workflows_1 = __nccwpck_require__(57443);
+const workflowSchemeDrafts_1 = __nccwpck_require__(37211);
+const workflowSchemeProjectAssociations_1 = __nccwpck_require__(19258);
+const workflowSchemes_1 = __nccwpck_require__(63422);
+const workflowStatusCategories_1 = __nccwpck_require__(20946);
+const workflowStatuses_1 = __nccwpck_require__(63398);
+const workflowTransitionProperties_1 = __nccwpck_require__(60110);
+const workflowTransitionRules_1 = __nccwpck_require__(30764);
+class Version2Client extends baseClient_1.BaseClient {
     constructor() {
         super(...arguments);
-        this.announcementBanner = new __1.AnnouncementBanner(this);
-        this.applicationRoles = new __1.ApplicationRoles(this);
-        this.appMigration = new __1.AppMigration(this);
-        this.appProperties = new __1.AppProperties(this);
-        this.auditRecords = new __1.AuditRecords(this);
-        this.avatars = new __1.Avatars(this);
-        this.dashboards = new __1.Dashboards(this);
-        this.dynamicModules = new __1.DynamicModules(this);
-        this.filters = new __1.Filters(this);
-        this.filterSharing = new __1.FilterSharing(this);
-        this.groupAndUserPicker = new __1.GroupAndUserPicker(this);
-        this.groups = new __1.Groups(this);
-        this.issueAttachments = new __1.IssueAttachments(this);
-        this.issueCommentProperties = new __1.IssueCommentProperties(this);
-        this.issueComments = new __1.IssueComments(this);
-        this.issueCustomFieldConfigurationApps = new __1.IssueCustomFieldConfigurationApps(this);
-        this.issueCustomFieldContexts = new __1.IssueCustomFieldContexts(this);
-        this.issueCustomFieldOptions = new __1.IssueCustomFieldOptions(this);
-        this.issueCustomFieldOptionsApps = new __1.IssueCustomFieldOptionsApps(this);
-        this.issueCustomFieldValuesApps = new __1.IssueCustomFieldValuesApps(this);
-        this.issueFieldConfigurations = new __1.IssueFieldConfigurations(this);
-        this.issueFields = new __1.IssueFields(this);
-        this.issueLinks = new __1.IssueLinks(this);
-        this.issueLinkTypes = new __1.IssueLinkTypes(this);
-        this.issueNavigatorSettings = new __1.IssueNavigatorSettings(this);
-        this.issueNotificationSchemes = new __1.IssueNotificationSchemes(this);
-        this.issuePriorities = new __1.IssuePriorities(this);
-        this.issueProperties = new __1.IssueProperties(this);
-        this.issueRemoteLinks = new __1.IssueRemoteLinks(this);
-        this.issueResolutions = new __1.IssueResolutions(this);
-        this.issues = new __1.Issues(this);
-        this.issueSearch = new __1.IssueSearch(this);
-        this.issueSecurityLevel = new __1.IssueSecurityLevel(this);
-        this.issueSecuritySchemes = new __1.IssueSecuritySchemes(this);
-        this.issueTypeProperties = new __1.IssueTypeProperties(this);
-        this.issueTypes = new __1.IssueTypes(this);
-        this.issueTypeSchemes = new __1.IssueTypeSchemes(this);
-        this.issueTypeScreenSchemes = new __1.IssueTypeScreenSchemes(this);
-        this.issueVotes = new __1.IssueVotes(this);
-        this.issueWatchers = new __1.IssueWatchers(this);
-        this.issueWorklogProperties = new __1.IssueWorklogProperties(this);
-        this.issueWorklogs = new __1.IssueWorklogs(this);
-        this.jiraExpressions = new __1.JiraExpressions(this);
-        this.jiraSettings = new __1.JiraSettings(this);
-        this.jql = new __1.JQL(this);
-        this.jqlFunctionsApps = new __1.JqlFunctionsApps(this);
-        this.labels = new __1.Labels(this);
-        this.licenseMetrics = new __1.LicenseMetrics(this);
-        this.myself = new __1.Myself(this);
-        this.permissions = new __1.Permissions(this);
-        this.permissionSchemes = new __1.PermissionSchemes(this);
-        this.projectAvatars = new __1.ProjectAvatars(this);
-        this.projectCategories = new __1.ProjectCategories(this);
-        this.projectComponents = new __1.ProjectComponents(this);
-        this.projectEmail = new __1.ProjectEmail(this);
-        this.projectFeatures = new __1.ProjectFeatures(this);
-        this.projectKeyAndNameValidation = new __1.ProjectKeyAndNameValidation(this);
-        this.projectPermissionSchemes = new __1.ProjectPermissionSchemes(this);
-        this.projectProperties = new __1.ProjectProperties(this);
-        this.projectRoleActors = new __1.ProjectRoleActors(this);
-        this.projectRoles = new __1.ProjectRoles(this);
-        this.projects = new __1.Projects(this);
-        this.projectTypes = new __1.ProjectTypes(this);
-        this.projectVersions = new __1.ProjectVersions(this);
-        this.screens = new __1.Screens(this);
-        this.screenSchemes = new __1.ScreenSchemes(this);
-        this.screenTabFields = new __1.ScreenTabFields(this);
-        this.screenTabs = new __1.ScreenTabs(this);
-        this.serverInfo = new __1.ServerInfo(this);
-        this.status = new __1.Status(this);
-        this.tasks = new __1.Tasks(this);
-        this.timeTracking = new __1.TimeTracking(this);
-        this.uiModificationsApps = new __1.UIModificationsApps(this);
-        this.userProperties = new __1.UserProperties(this);
-        this.users = new __1.Users(this);
-        this.userSearch = new __1.UserSearch(this);
-        this.webhooks = new __1.Webhooks(this);
-        this.workflows = new __1.Workflows(this);
-        this.workflowSchemeDrafts = new __1.WorkflowSchemeDrafts(this);
-        this.workflowSchemeProjectAssociations = new __1.WorkflowSchemeProjectAssociations(this);
-        this.workflowSchemes = new __1.WorkflowSchemes(this);
-        this.workflowStatusCategories = new __1.WorkflowStatusCategories(this);
-        this.workflowStatuses = new __1.WorkflowStatuses(this);
-        this.workflowTransitionProperties = new __1.WorkflowTransitionProperties(this);
-        this.workflowTransitionRules = new __1.WorkflowTransitionRules(this);
+        this.announcementBanner = new announcementBanner_1.AnnouncementBanner(this);
+        this.applicationRoles = new applicationRoles_1.ApplicationRoles(this);
+        this.appMigration = new appMigration_1.AppMigration(this);
+        this.appProperties = new appProperties_1.AppProperties(this);
+        this.auditRecords = new auditRecords_1.AuditRecords(this);
+        this.avatars = new avatars_1.Avatars(this);
+        this.dashboards = new dashboards_1.Dashboards(this);
+        this.dynamicModules = new dynamicModules_1.DynamicModules(this);
+        this.filters = new filters_1.Filters(this);
+        this.filterSharing = new filterSharing_1.FilterSharing(this);
+        this.groupAndUserPicker = new groupAndUserPicker_1.GroupAndUserPicker(this);
+        this.groups = new groups_1.Groups(this);
+        this.issueAttachments = new issueAttachments_1.IssueAttachments(this);
+        this.issueCommentProperties = new issueCommentProperties_1.IssueCommentProperties(this);
+        this.issueComments = new issueComments_1.IssueComments(this);
+        this.issueCustomFieldConfigurationApps = new issueCustomFieldConfigurationApps_1.IssueCustomFieldConfigurationApps(this);
+        this.issueCustomFieldContexts = new issueCustomFieldContexts_1.IssueCustomFieldContexts(this);
+        this.issueCustomFieldOptions = new issueCustomFieldOptions_1.IssueCustomFieldOptions(this);
+        this.issueCustomFieldOptionsApps = new issueCustomFieldOptionsApps_1.IssueCustomFieldOptionsApps(this);
+        this.issueCustomFieldValuesApps = new issueCustomFieldValuesApps_1.IssueCustomFieldValuesApps(this);
+        this.issueFieldConfigurations = new issueFieldConfigurations_1.IssueFieldConfigurations(this);
+        this.issueFields = new issueFields_1.IssueFields(this);
+        this.issueLinks = new issueLinks_1.IssueLinks(this);
+        this.issueLinkTypes = new issueLinkTypes_1.IssueLinkTypes(this);
+        this.issueNavigatorSettings = new issueNavigatorSettings_1.IssueNavigatorSettings(this);
+        this.issueNotificationSchemes = new issueNotificationSchemes_1.IssueNotificationSchemes(this);
+        this.issuePriorities = new issuePriorities_1.IssuePriorities(this);
+        this.issueProperties = new issueProperties_1.IssueProperties(this);
+        this.issueRemoteLinks = new issueRemoteLinks_1.IssueRemoteLinks(this);
+        this.issueResolutions = new issueResolutions_1.IssueResolutions(this);
+        this.issues = new issues_1.Issues(this);
+        this.issueSearch = new issueSearch_1.IssueSearch(this);
+        this.issueSecurityLevel = new issueSecurityLevel_1.IssueSecurityLevel(this);
+        this.issueSecuritySchemes = new issueSecuritySchemes_1.IssueSecuritySchemes(this);
+        this.issueTypeProperties = new issueTypeProperties_1.IssueTypeProperties(this);
+        this.issueTypes = new issueTypes_1.IssueTypes(this);
+        this.issueTypeSchemes = new issueTypeSchemes_1.IssueTypeSchemes(this);
+        this.issueTypeScreenSchemes = new issueTypeScreenSchemes_1.IssueTypeScreenSchemes(this);
+        this.issueVotes = new issueVotes_1.IssueVotes(this);
+        this.issueWatchers = new issueWatchers_1.IssueWatchers(this);
+        this.issueWorklogProperties = new issueWorklogProperties_1.IssueWorklogProperties(this);
+        this.issueWorklogs = new issueWorklogs_1.IssueWorklogs(this);
+        this.jiraExpressions = new jiraExpressions_1.JiraExpressions(this);
+        this.jiraSettings = new jiraSettings_1.JiraSettings(this);
+        this.jql = new jQL_1.JQL(this);
+        this.jqlFunctionsApps = new jqlFunctionsApps_1.JqlFunctionsApps(this);
+        this.labels = new labels_1.Labels(this);
+        this.licenseMetrics = new licenseMetrics_1.LicenseMetrics(this);
+        this.myself = new myself_1.Myself(this);
+        this.permissions = new permissions_1.Permissions(this);
+        this.permissionSchemes = new permissionSchemes_1.PermissionSchemes(this);
+        this.projectAvatars = new projectAvatars_1.ProjectAvatars(this);
+        this.projectCategories = new projectCategories_1.ProjectCategories(this);
+        this.projectComponents = new projectComponents_1.ProjectComponents(this);
+        this.projectEmail = new projectEmail_1.ProjectEmail(this);
+        this.projectFeatures = new projectFeatures_1.ProjectFeatures(this);
+        this.projectKeyAndNameValidation = new projectKeyAndNameValidation_1.ProjectKeyAndNameValidation(this);
+        this.projectPermissionSchemes = new projectPermissionSchemes_1.ProjectPermissionSchemes(this);
+        this.projectProperties = new projectProperties_1.ProjectProperties(this);
+        this.projectRoleActors = new projectRoleActors_1.ProjectRoleActors(this);
+        this.projectRoles = new projectRoles_1.ProjectRoles(this);
+        this.projects = new projects_1.Projects(this);
+        this.projectTypes = new projectTypes_1.ProjectTypes(this);
+        this.projectVersions = new projectVersions_1.ProjectVersions(this);
+        this.screens = new screens_1.Screens(this);
+        this.screenSchemes = new screenSchemes_1.ScreenSchemes(this);
+        this.screenTabFields = new screenTabFields_1.ScreenTabFields(this);
+        this.screenTabs = new screenTabs_1.ScreenTabs(this);
+        this.serverInfo = new serverInfo_1.ServerInfo(this);
+        this.status = new status_1.Status(this);
+        this.tasks = new tasks_1.Tasks(this);
+        this.timeTracking = new timeTracking_1.TimeTracking(this);
+        this.uiModificationsApps = new uIModificationsApps_1.UIModificationsApps(this);
+        this.userProperties = new userProperties_1.UserProperties(this);
+        this.users = new users_1.Users(this);
+        this.userSearch = new userSearch_1.UserSearch(this);
+        this.webhooks = new webhooks_1.Webhooks(this);
+        this.workflows = new workflows_1.Workflows(this);
+        this.workflowSchemeDrafts = new workflowSchemeDrafts_1.WorkflowSchemeDrafts(this);
+        this.workflowSchemeProjectAssociations = new workflowSchemeProjectAssociations_1.WorkflowSchemeProjectAssociations(this);
+        this.workflowSchemes = new workflowSchemes_1.WorkflowSchemes(this);
+        this.workflowStatusCategories = new workflowStatusCategories_1.WorkflowStatusCategories(this);
+        this.workflowStatuses = new workflowStatuses_1.WorkflowStatuses(this);
+        this.workflowTransitionProperties = new workflowTransitionProperties_1.WorkflowTransitionProperties(this);
+        this.workflowTransitionRules = new workflowTransitionRules_1.WorkflowTransitionRules(this);
     }
 }
 exports.Version2Client = Version2Client;
@@ -20270,8 +20387,8 @@ tslib_1.__exportStar(__nccwpck_require__(20946), exports);
 tslib_1.__exportStar(__nccwpck_require__(63398), exports);
 tslib_1.__exportStar(__nccwpck_require__(60110), exports);
 tslib_1.__exportStar(__nccwpck_require__(30764), exports);
-exports.Version2Models = __nccwpck_require__(52456);
-exports.Version2Parameters = __nccwpck_require__(45810);
+exports.Version2Models = tslib_1.__importStar(__nccwpck_require__(52456));
+exports.Version2Parameters = tslib_1.__importStar(__nccwpck_require__(45810));
 tslib_1.__exportStar(__nccwpck_require__(44829), exports);
 //# sourceMappingURL=index.js.map
 
@@ -20284,8 +20401,7 @@ tslib_1.__exportStar(__nccwpck_require__(44829), exports);
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.IssueAttachments = void 0;
 const tslib_1 = __nccwpck_require__(61860);
-// @ts-expect-error Wrong form data typings
-const form_data_1 = __nccwpck_require__(82805);
+const formdata_node_1 = __nccwpck_require__(34859);
 class IssueAttachments {
     constructor(client) {
         this.client = client;
@@ -20372,19 +20488,99 @@ class IssueAttachments {
     }
     addAttachment(parameters, callback) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            var _a;
-            const formData = new form_data_1.default();
+            var _a, e_1, _b, _c;
+            const formData = new formdata_node_1.FormData();
             const attachments = Array.isArray(parameters.attachment) ? parameters.attachment : [parameters.attachment];
-            attachments.forEach(attachment => formData.append('file', attachment.file, attachment.filename));
+            const { default: mime } = yield __nccwpck_require__.e(/* import() */ 86).then(__nccwpck_require__.bind(__nccwpck_require__, 15086));
+            let Readable;
+            if (typeof window === 'undefined') {
+                const { Readable: NodeReadable } = yield Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 2203, 23));
+                Readable = NodeReadable;
+            }
+            try {
+                // eslint-disable-next-line no-restricted-syntax
+                for (var _d = true, attachments_1 = tslib_1.__asyncValues(attachments), attachments_1_1; attachments_1_1 = yield attachments_1.next(), _a = attachments_1_1.done, !_a; _d = true) {
+                    _c = attachments_1_1.value;
+                    _d = false;
+                    const attachment = _c;
+                    const file = yield this._convertToFile(attachment, mime, Readable);
+                    if (!(file instanceof formdata_node_1.File || file instanceof Blob)) {
+                        throw new Error(`Unsupported file type for attachment: ${typeof file}`);
+                    }
+                    formData.append('file', file, attachment.filename);
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = attachments_1.return)) yield _b.call(attachments_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
             const config = {
                 url: `/rest/api/2/issue/${parameters.issueIdOrKey}/attachments`,
                 method: 'POST',
-                headers: Object.assign({ 'X-Atlassian-Token': 'no-check', 'Content-Type': 'multipart/form-data' }, (_a = formData.getHeaders) === null || _a === void 0 ? void 0 : _a.call(formData)),
+                headers: {
+                    'X-Atlassian-Token': 'no-check',
+                    'Content-Type': 'multipart/form-data',
+                },
                 data: formData,
                 maxBodyLength: Infinity,
                 maxContentLength: Infinity,
             };
             return this.client.sendRequest(config, callback);
+        });
+    }
+    _convertToFile(attachment, mime, Readable) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const mimeType = (_a = attachment.mimeType) !== null && _a !== void 0 ? _a : (mime.getType(attachment.filename) || undefined);
+            if (attachment.file instanceof Blob || attachment.file instanceof formdata_node_1.File) {
+                return attachment.file;
+            }
+            if (typeof attachment.file === 'string') {
+                return new formdata_node_1.File([attachment.file], attachment.filename, { type: mimeType });
+            }
+            if (Readable && attachment.file instanceof Readable) {
+                return this._streamToBlob(attachment.file, attachment.filename, mimeType);
+            }
+            if (attachment.file instanceof ReadableStream) {
+                return this._streamToBlob(attachment.file, attachment.filename, mimeType);
+            }
+            if (ArrayBuffer.isView(attachment.file) || attachment.file instanceof ArrayBuffer) {
+                return new formdata_node_1.File([attachment.file], attachment.filename, { type: mimeType });
+            }
+            throw new Error('Unsupported attachment file type.');
+        });
+    }
+    _streamToBlob(stream, filename, mimeType) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            if (typeof window === 'undefined' && stream instanceof (yield Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 2203, 23))).Readable) {
+                return new Promise((resolve, reject) => {
+                    const chunks = [];
+                    stream.on('data', chunk => chunks.push(chunk));
+                    stream.on('end', () => {
+                        const blob = new Blob(chunks, { type: mimeType });
+                        resolve(new formdata_node_1.File([blob], filename, { type: mimeType }));
+                    });
+                    stream.on('error', reject);
+                });
+            }
+            if (stream instanceof ReadableStream) {
+                const reader = stream.getReader();
+                const chunks = [];
+                let done = false;
+                while (!done) {
+                    // eslint-disable-next-line no-await-in-loop
+                    const { value, done: streamDone } = yield reader.read();
+                    if (value)
+                        chunks.push(value);
+                    done = streamDone;
+                }
+                const blob = new Blob(chunks, { type: mimeType });
+                return new formdata_node_1.File([blob], filename, { type: mimeType });
+            }
+            throw new Error('Unsupported stream type.');
         });
     }
 }
@@ -37670,97 +37866,182 @@ tslib_1.__exportStar(__nccwpck_require__(63808), exports);
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Version3Client = void 0;
-const clients_1 = __nccwpck_require__(2421);
-const __1 = __nccwpck_require__(74062);
-class Version3Client extends clients_1.BaseClient {
+const baseClient_1 = __nccwpck_require__(35331);
+const announcementBanner_1 = __nccwpck_require__(69525);
+const appMigration_1 = __nccwpck_require__(77565);
+const appProperties_1 = __nccwpck_require__(52436);
+const applicationRoles_1 = __nccwpck_require__(74431);
+const auditRecords_1 = __nccwpck_require__(73767);
+const avatars_1 = __nccwpck_require__(52492);
+const dashboards_1 = __nccwpck_require__(79849);
+const dynamicModules_1 = __nccwpck_require__(93086);
+const filterSharing_1 = __nccwpck_require__(21100);
+const filters_1 = __nccwpck_require__(53529);
+const groupAndUserPicker_1 = __nccwpck_require__(1449);
+const groups_1 = __nccwpck_require__(72156);
+const instanceInformation_1 = __nccwpck_require__(25173);
+const issueAttachments_1 = __nccwpck_require__(96703);
+const issueCommentProperties_1 = __nccwpck_require__(25829);
+const issueComments_1 = __nccwpck_require__(76351);
+const issueCustomFieldConfigurationApps_1 = __nccwpck_require__(51592);
+const issueCustomFieldContexts_1 = __nccwpck_require__(8932);
+const issueCustomFieldOptions_1 = __nccwpck_require__(91464);
+const issueCustomFieldOptionsApps_1 = __nccwpck_require__(25980);
+const issueCustomFieldValuesApps_1 = __nccwpck_require__(1374);
+const issueFieldConfigurations_1 = __nccwpck_require__(72434);
+const issueFields_1 = __nccwpck_require__(3200);
+const issueLinkTypes_1 = __nccwpck_require__(59700);
+const issueLinks_1 = __nccwpck_require__(88196);
+const issueNavigatorSettings_1 = __nccwpck_require__(68901);
+const issueNotificationSchemes_1 = __nccwpck_require__(53187);
+const issuePriorities_1 = __nccwpck_require__(79421);
+const issueProperties_1 = __nccwpck_require__(53248);
+const issueRemoteLinks_1 = __nccwpck_require__(57342);
+const issueResolutions_1 = __nccwpck_require__(32414);
+const issueSearch_1 = __nccwpck_require__(83153);
+const issueSecurityLevel_1 = __nccwpck_require__(32985);
+const issueSecuritySchemes_1 = __nccwpck_require__(45451);
+const issueTypeProperties_1 = __nccwpck_require__(43008);
+const issueTypeSchemes_1 = __nccwpck_require__(16165);
+const issueTypeScreenSchemes_1 = __nccwpck_require__(39673);
+const issueTypes_1 = __nccwpck_require__(28444);
+const issueVotes_1 = __nccwpck_require__(13056);
+const issueWatchers_1 = __nccwpck_require__(42460);
+const issueWorklogProperties_1 = __nccwpck_require__(29133);
+const issueWorklogs_1 = __nccwpck_require__(63959);
+const issues_1 = __nccwpck_require__(24732);
+const jiraExpressions_1 = __nccwpck_require__(79573);
+const jiraSettings_1 = __nccwpck_require__(63001);
+const jQL_1 = __nccwpck_require__(31405);
+const jqlFunctionsApps_1 = __nccwpck_require__(38496);
+const labels_1 = __nccwpck_require__(4019);
+const licenseMetrics_1 = __nccwpck_require__(85720);
+const myself_1 = __nccwpck_require__(18340);
+const permissionSchemes_1 = __nccwpck_require__(66219);
+const permissions_1 = __nccwpck_require__(76690);
+const projectAvatars_1 = __nccwpck_require__(87077);
+const projectCategories_1 = __nccwpck_require__(82895);
+const projectComponents_1 = __nccwpck_require__(15223);
+const projectEmail_1 = __nccwpck_require__(55315);
+const projectFeatures_1 = __nccwpck_require__(74336);
+const projectKeyAndNameValidation_1 = __nccwpck_require__(97151);
+const projectPermissionSchemes_1 = __nccwpck_require__(68994);
+const projectProperties_1 = __nccwpck_require__(60066);
+const projectRoleActors_1 = __nccwpck_require__(8445);
+const projectRoles_1 = __nccwpck_require__(95246);
+const projectTypes_1 = __nccwpck_require__(42326);
+const projectVersions_1 = __nccwpck_require__(5386);
+const projects_1 = __nccwpck_require__(70526);
+const screenSchemes_1 = __nccwpck_require__(55946);
+const screenTabFields_1 = __nccwpck_require__(83460);
+const screenTabs_1 = __nccwpck_require__(18776);
+const screens_1 = __nccwpck_require__(46471);
+const serverInfo_1 = __nccwpck_require__(36991);
+const status_1 = __nccwpck_require__(61234);
+const tasks_1 = __nccwpck_require__(34900);
+const timeTracking_1 = __nccwpck_require__(25648);
+const uIModificationsApps_1 = __nccwpck_require__(96649);
+const userProperties_1 = __nccwpck_require__(26402);
+const userSearch_1 = __nccwpck_require__(76543);
+const users_1 = __nccwpck_require__(44190);
+const webhooks_1 = __nccwpck_require__(81426);
+const workflows_1 = __nccwpck_require__(57740);
+const workflowSchemeDrafts_1 = __nccwpck_require__(49470);
+const workflowSchemeProjectAssociations_1 = __nccwpck_require__(93617);
+const workflowSchemes_1 = __nccwpck_require__(15253);
+const workflowStatusCategories_1 = __nccwpck_require__(34435);
+const workflowStatuses_1 = __nccwpck_require__(55739);
+const workflowTransitionProperties_1 = __nccwpck_require__(98427);
+const workflowTransitionRules_1 = __nccwpck_require__(59735);
+class Version3Client extends baseClient_1.BaseClient {
     constructor() {
         super(...arguments);
-        this.announcementBanner = new __1.AnnouncementBanner(this);
-        this.applicationRoles = new __1.ApplicationRoles(this);
-        this.appMigration = new __1.AppMigration(this);
-        this.appProperties = new __1.AppProperties(this);
-        this.auditRecords = new __1.AuditRecords(this);
-        this.avatars = new __1.Avatars(this);
-        this.dashboards = new __1.Dashboards(this);
-        this.dynamicModules = new __1.DynamicModules(this);
-        this.filters = new __1.Filters(this);
-        this.filterSharing = new __1.FilterSharing(this);
-        this.groupAndUserPicker = new __1.GroupAndUserPicker(this);
-        this.groups = new __1.Groups(this);
-        this.instanceInformation = new __1.InstanceInformation(this);
-        this.issueAttachments = new __1.IssueAttachments(this);
-        this.issueCommentProperties = new __1.IssueCommentProperties(this);
-        this.issueComments = new __1.IssueComments(this);
-        this.issueCustomFieldConfigurationApps = new __1.IssueCustomFieldConfigurationApps(this);
-        this.issueCustomFieldContexts = new __1.IssueCustomFieldContexts(this);
-        this.issueCustomFieldOptions = new __1.IssueCustomFieldOptions(this);
-        this.issueCustomFieldOptionsApps = new __1.IssueCustomFieldOptionsApps(this);
-        this.issueCustomFieldValuesApps = new __1.IssueCustomFieldValuesApps(this);
-        this.issueFieldConfigurations = new __1.IssueFieldConfigurations(this);
-        this.issueFields = new __1.IssueFields(this);
-        this.issueLinks = new __1.IssueLinks(this);
-        this.issueLinkTypes = new __1.IssueLinkTypes(this);
-        this.issueNavigatorSettings = new __1.IssueNavigatorSettings(this);
-        this.issueNotificationSchemes = new __1.IssueNotificationSchemes(this);
-        this.issuePriorities = new __1.IssuePriorities(this);
-        this.issueProperties = new __1.IssueProperties(this);
-        this.issueRemoteLinks = new __1.IssueRemoteLinks(this);
-        this.issueResolutions = new __1.IssueResolutions(this);
-        this.issues = new __1.Issues(this);
-        this.issueSearch = new __1.IssueSearch(this);
-        this.issueSecurityLevel = new __1.IssueSecurityLevel(this);
-        this.issueSecuritySchemes = new __1.IssueSecuritySchemes(this);
-        this.issueTypeProperties = new __1.IssueTypeProperties(this);
-        this.issueTypes = new __1.IssueTypes(this);
-        this.issueTypeSchemes = new __1.IssueTypeSchemes(this);
-        this.issueTypeScreenSchemes = new __1.IssueTypeScreenSchemes(this);
-        this.issueVotes = new __1.IssueVotes(this);
-        this.issueWatchers = new __1.IssueWatchers(this);
-        this.issueWorklogProperties = new __1.IssueWorklogProperties(this);
-        this.issueWorklogs = new __1.IssueWorklogs(this);
-        this.jiraExpressions = new __1.JiraExpressions(this);
-        this.jiraSettings = new __1.JiraSettings(this);
-        this.jql = new __1.JQL(this);
-        this.jqlFunctionsApps = new __1.JqlFunctionsApps(this);
-        this.labels = new __1.Labels(this);
-        this.licenseMetrics = new __1.LicenseMetrics(this);
-        this.myself = new __1.Myself(this);
-        this.permissions = new __1.Permissions(this);
-        this.permissionSchemes = new __1.PermissionSchemes(this);
-        this.projectAvatars = new __1.ProjectAvatars(this);
-        this.projectCategories = new __1.ProjectCategories(this);
-        this.projectComponents = new __1.ProjectComponents(this);
-        this.projectEmail = new __1.ProjectEmail(this);
-        this.projectFeatures = new __1.ProjectFeatures(this);
-        this.projectKeyAndNameValidation = new __1.ProjectKeyAndNameValidation(this);
-        this.projectPermissionSchemes = new __1.ProjectPermissionSchemes(this);
-        this.projectProperties = new __1.ProjectProperties(this);
-        this.projectRoleActors = new __1.ProjectRoleActors(this);
-        this.projectRoles = new __1.ProjectRoles(this);
-        this.projects = new __1.Projects(this);
-        this.projectTypes = new __1.ProjectTypes(this);
-        this.projectVersions = new __1.ProjectVersions(this);
-        this.screens = new __1.Screens(this);
-        this.screenSchemes = new __1.ScreenSchemes(this);
-        this.screenTabFields = new __1.ScreenTabFields(this);
-        this.screenTabs = new __1.ScreenTabs(this);
-        this.serverInfo = new __1.ServerInfo(this);
-        this.status = new __1.Status(this);
-        this.tasks = new __1.Tasks(this);
-        this.timeTracking = new __1.TimeTracking(this);
-        this.uiModificationsApps = new __1.UIModificationsApps(this);
-        this.userProperties = new __1.UserProperties(this);
-        this.users = new __1.Users(this);
-        this.userSearch = new __1.UserSearch(this);
-        this.webhooks = new __1.Webhooks(this);
-        this.workflows = new __1.Workflows(this);
-        this.workflowSchemeDrafts = new __1.WorkflowSchemeDrafts(this);
-        this.workflowSchemeProjectAssociations = new __1.WorkflowSchemeProjectAssociations(this);
-        this.workflowSchemes = new __1.WorkflowSchemes(this);
-        this.workflowStatusCategories = new __1.WorkflowStatusCategories(this);
-        this.workflowStatuses = new __1.WorkflowStatuses(this);
-        this.workflowTransitionProperties = new __1.WorkflowTransitionProperties(this);
-        this.workflowTransitionRules = new __1.WorkflowTransitionRules(this);
+        this.announcementBanner = new announcementBanner_1.AnnouncementBanner(this);
+        this.applicationRoles = new applicationRoles_1.ApplicationRoles(this);
+        this.appMigration = new appMigration_1.AppMigration(this);
+        this.appProperties = new appProperties_1.AppProperties(this);
+        this.auditRecords = new auditRecords_1.AuditRecords(this);
+        this.avatars = new avatars_1.Avatars(this);
+        this.dashboards = new dashboards_1.Dashboards(this);
+        this.dynamicModules = new dynamicModules_1.DynamicModules(this);
+        this.filters = new filters_1.Filters(this);
+        this.filterSharing = new filterSharing_1.FilterSharing(this);
+        this.groupAndUserPicker = new groupAndUserPicker_1.GroupAndUserPicker(this);
+        this.groups = new groups_1.Groups(this);
+        this.instanceInformation = new instanceInformation_1.InstanceInformation(this);
+        this.issueAttachments = new issueAttachments_1.IssueAttachments(this);
+        this.issueCommentProperties = new issueCommentProperties_1.IssueCommentProperties(this);
+        this.issueComments = new issueComments_1.IssueComments(this);
+        this.issueCustomFieldConfigurationApps = new issueCustomFieldConfigurationApps_1.IssueCustomFieldConfigurationApps(this);
+        this.issueCustomFieldContexts = new issueCustomFieldContexts_1.IssueCustomFieldContexts(this);
+        this.issueCustomFieldOptions = new issueCustomFieldOptions_1.IssueCustomFieldOptions(this);
+        this.issueCustomFieldOptionsApps = new issueCustomFieldOptionsApps_1.IssueCustomFieldOptionsApps(this);
+        this.issueCustomFieldValuesApps = new issueCustomFieldValuesApps_1.IssueCustomFieldValuesApps(this);
+        this.issueFieldConfigurations = new issueFieldConfigurations_1.IssueFieldConfigurations(this);
+        this.issueFields = new issueFields_1.IssueFields(this);
+        this.issueLinks = new issueLinks_1.IssueLinks(this);
+        this.issueLinkTypes = new issueLinkTypes_1.IssueLinkTypes(this);
+        this.issueNavigatorSettings = new issueNavigatorSettings_1.IssueNavigatorSettings(this);
+        this.issueNotificationSchemes = new issueNotificationSchemes_1.IssueNotificationSchemes(this);
+        this.issuePriorities = new issuePriorities_1.IssuePriorities(this);
+        this.issueProperties = new issueProperties_1.IssueProperties(this);
+        this.issueRemoteLinks = new issueRemoteLinks_1.IssueRemoteLinks(this);
+        this.issueResolutions = new issueResolutions_1.IssueResolutions(this);
+        this.issues = new issues_1.Issues(this);
+        this.issueSearch = new issueSearch_1.IssueSearch(this);
+        this.issueSecurityLevel = new issueSecurityLevel_1.IssueSecurityLevel(this);
+        this.issueSecuritySchemes = new issueSecuritySchemes_1.IssueSecuritySchemes(this);
+        this.issueTypeProperties = new issueTypeProperties_1.IssueTypeProperties(this);
+        this.issueTypes = new issueTypes_1.IssueTypes(this);
+        this.issueTypeSchemes = new issueTypeSchemes_1.IssueTypeSchemes(this);
+        this.issueTypeScreenSchemes = new issueTypeScreenSchemes_1.IssueTypeScreenSchemes(this);
+        this.issueVotes = new issueVotes_1.IssueVotes(this);
+        this.issueWatchers = new issueWatchers_1.IssueWatchers(this);
+        this.issueWorklogProperties = new issueWorklogProperties_1.IssueWorklogProperties(this);
+        this.issueWorklogs = new issueWorklogs_1.IssueWorklogs(this);
+        this.jiraExpressions = new jiraExpressions_1.JiraExpressions(this);
+        this.jiraSettings = new jiraSettings_1.JiraSettings(this);
+        this.jql = new jQL_1.JQL(this);
+        this.jqlFunctionsApps = new jqlFunctionsApps_1.JqlFunctionsApps(this);
+        this.labels = new labels_1.Labels(this);
+        this.licenseMetrics = new licenseMetrics_1.LicenseMetrics(this);
+        this.myself = new myself_1.Myself(this);
+        this.permissions = new permissions_1.Permissions(this);
+        this.permissionSchemes = new permissionSchemes_1.PermissionSchemes(this);
+        this.projectAvatars = new projectAvatars_1.ProjectAvatars(this);
+        this.projectCategories = new projectCategories_1.ProjectCategories(this);
+        this.projectComponents = new projectComponents_1.ProjectComponents(this);
+        this.projectEmail = new projectEmail_1.ProjectEmail(this);
+        this.projectFeatures = new projectFeatures_1.ProjectFeatures(this);
+        this.projectKeyAndNameValidation = new projectKeyAndNameValidation_1.ProjectKeyAndNameValidation(this);
+        this.projectPermissionSchemes = new projectPermissionSchemes_1.ProjectPermissionSchemes(this);
+        this.projectProperties = new projectProperties_1.ProjectProperties(this);
+        this.projectRoleActors = new projectRoleActors_1.ProjectRoleActors(this);
+        this.projectRoles = new projectRoles_1.ProjectRoles(this);
+        this.projects = new projects_1.Projects(this);
+        this.projectTypes = new projectTypes_1.ProjectTypes(this);
+        this.projectVersions = new projectVersions_1.ProjectVersions(this);
+        this.screens = new screens_1.Screens(this);
+        this.screenSchemes = new screenSchemes_1.ScreenSchemes(this);
+        this.screenTabFields = new screenTabFields_1.ScreenTabFields(this);
+        this.screenTabs = new screenTabs_1.ScreenTabs(this);
+        this.serverInfo = new serverInfo_1.ServerInfo(this);
+        this.status = new status_1.Status(this);
+        this.tasks = new tasks_1.Tasks(this);
+        this.timeTracking = new timeTracking_1.TimeTracking(this);
+        this.uiModificationsApps = new uIModificationsApps_1.UIModificationsApps(this);
+        this.userProperties = new userProperties_1.UserProperties(this);
+        this.users = new users_1.Users(this);
+        this.userSearch = new userSearch_1.UserSearch(this);
+        this.webhooks = new webhooks_1.Webhooks(this);
+        this.workflows = new workflows_1.Workflows(this);
+        this.workflowSchemeDrafts = new workflowSchemeDrafts_1.WorkflowSchemeDrafts(this);
+        this.workflowSchemeProjectAssociations = new workflowSchemeProjectAssociations_1.WorkflowSchemeProjectAssociations(this);
+        this.workflowSchemes = new workflowSchemes_1.WorkflowSchemes(this);
+        this.workflowStatusCategories = new workflowStatusCategories_1.WorkflowStatusCategories(this);
+        this.workflowStatuses = new workflowStatuses_1.WorkflowStatuses(this);
+        this.workflowTransitionProperties = new workflowTransitionProperties_1.WorkflowTransitionProperties(this);
+        this.workflowTransitionRules = new workflowTransitionRules_1.WorkflowTransitionRules(this);
     }
 }
 exports.Version3Client = Version3Client;
@@ -38599,8 +38880,8 @@ tslib_1.__exportStar(__nccwpck_require__(55739), exports);
 tslib_1.__exportStar(__nccwpck_require__(98427), exports);
 tslib_1.__exportStar(__nccwpck_require__(59735), exports);
 tslib_1.__exportStar(__nccwpck_require__(11888), exports);
-exports.Version3Models = __nccwpck_require__(21933);
-exports.Version3Parameters = __nccwpck_require__(33859);
+exports.Version3Models = tslib_1.__importStar(__nccwpck_require__(21933));
+exports.Version3Parameters = tslib_1.__importStar(__nccwpck_require__(33859));
 //# sourceMappingURL=index.js.map
 
 /***/ }),
@@ -38638,8 +38919,7 @@ exports.InstanceInformation = InstanceInformation;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.IssueAttachments = void 0;
 const tslib_1 = __nccwpck_require__(61860);
-// @ts-expect-error Wrong form data typings
-const form_data_1 = __nccwpck_require__(82805);
+const formdata_node_1 = __nccwpck_require__(34859);
 class IssueAttachments {
     constructor(client) {
         this.client = client;
@@ -38726,19 +39006,99 @@ class IssueAttachments {
     }
     addAttachment(parameters, callback) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            var _a;
-            const formData = new form_data_1.default();
+            var _a, e_1, _b, _c;
+            const formData = new formdata_node_1.FormData();
             const attachments = Array.isArray(parameters.attachment) ? parameters.attachment : [parameters.attachment];
-            attachments.forEach(attachment => formData.append('file', attachment.file, attachment.filename));
+            const { default: mime } = yield __nccwpck_require__.e(/* import() */ 86).then(__nccwpck_require__.bind(__nccwpck_require__, 15086));
+            let Readable;
+            if (typeof window === 'undefined') {
+                const { Readable: NodeReadable } = yield Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 2203, 23));
+                Readable = NodeReadable;
+            }
+            try {
+                // eslint-disable-next-line no-restricted-syntax
+                for (var _d = true, attachments_1 = tslib_1.__asyncValues(attachments), attachments_1_1; attachments_1_1 = yield attachments_1.next(), _a = attachments_1_1.done, !_a; _d = true) {
+                    _c = attachments_1_1.value;
+                    _d = false;
+                    const attachment = _c;
+                    const file = yield this._convertToFile(attachment, mime, Readable);
+                    if (!(file instanceof formdata_node_1.File || file instanceof Blob)) {
+                        throw new Error(`Unsupported file type for attachment: ${typeof file}`);
+                    }
+                    formData.append('file', file, attachment.filename);
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (!_d && !_a && (_b = attachments_1.return)) yield _b.call(attachments_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
             const config = {
                 url: `/rest/api/3/issue/${parameters.issueIdOrKey}/attachments`,
                 method: 'POST',
-                headers: Object.assign({ 'X-Atlassian-Token': 'no-check', 'Content-Type': 'multipart/form-data' }, (_a = formData.getHeaders) === null || _a === void 0 ? void 0 : _a.call(formData)),
+                headers: {
+                    'X-Atlassian-Token': 'no-check',
+                    'Content-Type': 'multipart/form-data',
+                },
                 data: formData,
                 maxBodyLength: Infinity,
                 maxContentLength: Infinity,
             };
             return this.client.sendRequest(config, callback);
+        });
+    }
+    _convertToFile(attachment, mime, Readable) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const mimeType = (_a = attachment.mimeType) !== null && _a !== void 0 ? _a : (mime.getType(attachment.filename) || undefined);
+            if (attachment.file instanceof Blob || attachment.file instanceof formdata_node_1.File) {
+                return attachment.file;
+            }
+            if (typeof attachment.file === 'string') {
+                return new formdata_node_1.File([attachment.file], attachment.filename, { type: mimeType });
+            }
+            if (Readable && attachment.file instanceof Readable) {
+                return this._streamToBlob(attachment.file, attachment.filename, mimeType);
+            }
+            if (attachment.file instanceof ReadableStream) {
+                return this._streamToBlob(attachment.file, attachment.filename, mimeType);
+            }
+            if (ArrayBuffer.isView(attachment.file) || attachment.file instanceof ArrayBuffer) {
+                return new formdata_node_1.File([attachment.file], attachment.filename, { type: mimeType });
+            }
+            throw new Error('Unsupported attachment file type.');
+        });
+    }
+    _streamToBlob(stream, filename, mimeType) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            if (typeof window === 'undefined' && stream instanceof (yield Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 2203, 23))).Readable) {
+                return new Promise((resolve, reject) => {
+                    const chunks = [];
+                    stream.on('data', chunk => chunks.push(chunk));
+                    stream.on('end', () => {
+                        const blob = new Blob(chunks, { type: mimeType });
+                        resolve(new formdata_node_1.File([blob], filename, { type: mimeType }));
+                    });
+                    stream.on('error', reject);
+                });
+            }
+            if (stream instanceof ReadableStream) {
+                const reader = stream.getReader();
+                const chunks = [];
+                let done = false;
+                while (!done) {
+                    // eslint-disable-next-line no-await-in-loop
+                    const { value, done: streamDone } = yield reader.read();
+                    if (value)
+                        chunks.push(value);
+                    done = streamDone;
+                }
+                const blob = new Blob(chunks, { type: mimeType });
+                return new formdata_node_1.File([blob], filename, { type: mimeType });
+            }
+            throw new Error('Unsupported stream type.');
         });
     }
 }
@@ -43832,7 +44192,6 @@ tslib_1.__exportStar(__nccwpck_require__(51608), exports);
 tslib_1.__exportStar(__nccwpck_require__(16504), exports);
 tslib_1.__exportStar(__nccwpck_require__(91130), exports);
 tslib_1.__exportStar(__nccwpck_require__(43432), exports);
-tslib_1.__exportStar(__nccwpck_require__(21933), exports);
 tslib_1.__exportStar(__nccwpck_require__(31574), exports);
 tslib_1.__exportStar(__nccwpck_require__(25807), exports);
 tslib_1.__exportStar(__nccwpck_require__(65074), exports);
@@ -55215,6 +55574,103 @@ exports.Workflows = Workflows;
 
 /***/ }),
 
+/***/ 55641:
+/***/ ((module) => {
+
+
+
+/** @type {import('./abs')} */
+module.exports = Math.abs;
+
+
+/***/ }),
+
+/***/ 96171:
+/***/ ((module) => {
+
+
+
+/** @type {import('./floor')} */
+module.exports = Math.floor;
+
+
+/***/ }),
+
+/***/ 77044:
+/***/ ((module) => {
+
+
+
+/** @type {import('./isNaN')} */
+module.exports = Number.isNaN || function isNaN(a) {
+	return a !== a;
+};
+
+
+/***/ }),
+
+/***/ 57147:
+/***/ ((module) => {
+
+
+
+/** @type {import('./max')} */
+module.exports = Math.max;
+
+
+/***/ }),
+
+/***/ 41017:
+/***/ ((module) => {
+
+
+
+/** @type {import('./min')} */
+module.exports = Math.min;
+
+
+/***/ }),
+
+/***/ 56947:
+/***/ ((module) => {
+
+
+
+/** @type {import('./pow')} */
+module.exports = Math.pow;
+
+
+/***/ }),
+
+/***/ 42621:
+/***/ ((module) => {
+
+
+
+/** @type {import('./round')} */
+module.exports = Math.round;
+
+
+/***/ }),
+
+/***/ 30156:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+var $isNaN = __nccwpck_require__(77044);
+
+/** @type {import('./sign')} */
+module.exports = function sign(number) {
+	if ($isNaN(number) || number === 0) {
+		return number;
+	}
+	return number < 0 ? -1 : +1;
+};
+
+
+/***/ }),
+
 /***/ 99829:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -55457,7 +55913,7 @@ var y = d * 365.25;
  * @api public
  */
 
-module.exports = function(val, options) {
+module.exports = function (val, options) {
   options = options || {};
   var type = typeof val;
   if (type === 'string' && val.length > 0) {
@@ -64696,6 +65152,14 @@ const { isUint8Array, isArrayBuffer } = __nccwpck_require__(98253)
 const { File: UndiciFile } = __nccwpck_require__(63041)
 const { parseMIMEType, serializeAMimeType } = __nccwpck_require__(94322)
 
+let random
+try {
+  const crypto = __nccwpck_require__(77598)
+  random = (max) => crypto.randomInt(0, max)
+} catch {
+  random = (max) => Math.floor(Math.random(max))
+}
+
 let ReadableStream = globalThis.ReadableStream
 
 /** @type {globalThis['File']} */
@@ -64781,7 +65245,7 @@ function extractBody (object, keepalive = false) {
     // Set source to a copy of the bytes held by object.
     source = new Uint8Array(object.buffer.slice(object.byteOffset, object.byteOffset + object.byteLength))
   } else if (util.isFormDataLike(object)) {
-    const boundary = `----formdata-undici-0${`${Math.floor(Math.random() * 1e11)}`.padStart(11, '0')}`
+    const boundary = `----formdata-undici-0${`${random(1e11)}`.padStart(11, '0')}`
     const prefix = `--${boundary}\r\nContent-Disposition: form-data`
 
     /*! formdata-polyfill. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> */
@@ -100431,13 +100895,10 @@ function lowercaseKeys(object) {
 
 // pkg/dist-src/util/is-plain-object.js
 function isPlainObject(value) {
-  if (typeof value !== "object" || value === null)
-    return false;
-  if (Object.prototype.toString.call(value) !== "[object Object]")
-    return false;
+  if (typeof value !== "object" || value === null) return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]") return false;
   const proto = Object.getPrototypeOf(value);
-  if (proto === null)
-    return true;
+  if (proto === null) return true;
   const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
   return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
 }
@@ -100447,10 +100908,8 @@ function mergeDeep(defaults, options) {
   const result = Object.assign({}, defaults);
   Object.keys(options).forEach((key) => {
     if (isPlainObject(options[key])) {
-      if (!(key in defaults))
-        Object.assign(result, { [key]: options[key] });
-      else
-        result[key] = mergeDeep(defaults[key], options[key]);
+      if (!(key in defaults)) Object.assign(result, { [key]: options[key] });
+      else result[key] = mergeDeep(defaults[key], options[key]);
     } else {
       Object.assign(result, { [key]: options[key] });
     }
@@ -100507,9 +100966,9 @@ function addQueryParameters(url, parameters) {
 }
 
 // pkg/dist-src/util/extract-url-variable-names.js
-var urlVariableRegex = /\{[^}]+\}/g;
+var urlVariableRegex = /\{[^{}}]+\}/g;
 function removeNonChars(variableName) {
-  return variableName.replace(/^\W+|\W+$/g, "").split(/,/);
+  return variableName.replace(/(?:^\W+)|(?:(?<!\W)\W+$)/g, "").split(/,/);
 }
 function extractUrlVariableNames(url) {
   const matches = url.match(urlVariableRegex);
@@ -100695,7 +101154,7 @@ function parse(options) {
     }
     if (url.endsWith("/graphql")) {
       if (options.mediaType.previews?.length) {
-        const previewsFromAcceptHeader = headers.accept.match(/[\w-]+(?=-preview)/g) || [];
+        const previewsFromAcceptHeader = headers.accept.match(/(?<![\w-])[\w-]+(?=-preview)/g) || [];
         headers.accept = previewsFromAcceptHeader.concat(options.mediaType.previews).map((preview) => {
           const format = options.mediaType.format ? `.${options.mediaType.format}` : "+json";
           return `application/vnd.github.${preview}-preview${format}`;
@@ -100748,6 +101207,8 @@ function withDefaults(oldDefaults, newDefaults) {
 var endpoint = withDefaults(null, DEFAULTS);
 
 
+// EXTERNAL MODULE: ./node_modules/fast-content-type-parse/index.js
+var fast_content_type_parse = __nccwpck_require__(41120);
 ;// CONCATENATED MODULE: ./node_modules/@octokit/core/node_modules/@octokit/request-error/dist-src/index.js
 class RequestError extends Error {
   name;
@@ -100765,11 +101226,11 @@ class RequestError extends Error {
   response;
   constructor(message, statusCode, options) {
     super(message);
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
     this.name = "HttpError";
-    this.status = statusCode;
+    this.status = Number.parseInt(statusCode);
+    if (Number.isNaN(this.status)) {
+      this.status = 0;
+    }
     if ("response" in options) {
       this.response = options.response;
     }
@@ -100777,7 +101238,7 @@ class RequestError extends Error {
     if (options.request.headers.authorization) {
       requestCopy.headers = Object.assign({}, options.request.headers, {
         authorization: options.request.headers.authorization.replace(
-          / .*$/,
+          /(?<! ) .*$/,
           " [REDACTED]"
         )
       });
@@ -100792,169 +101253,165 @@ class RequestError extends Error {
 // pkg/dist-src/index.js
 
 
+// pkg/dist-src/defaults.js
+
 
 // pkg/dist-src/version.js
 var dist_bundle_VERSION = "0.0.0-development";
 
+// pkg/dist-src/defaults.js
+var defaults_default = {
+  headers: {
+    "user-agent": `octokit-request.js/${dist_bundle_VERSION} ${getUserAgent()}`
+  }
+};
+
+// pkg/dist-src/fetch-wrapper.js
+
+
 // pkg/dist-src/is-plain-object.js
 function dist_bundle_isPlainObject(value) {
-  if (typeof value !== "object" || value === null)
-    return false;
-  if (Object.prototype.toString.call(value) !== "[object Object]")
-    return false;
+  if (typeof value !== "object" || value === null) return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]") return false;
   const proto = Object.getPrototypeOf(value);
-  if (proto === null)
-    return true;
+  if (proto === null) return true;
   const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
   return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
 }
 
 // pkg/dist-src/fetch-wrapper.js
 
-
-// pkg/dist-src/get-buffer-response.js
-function getBufferResponse(response) {
-  return response.arrayBuffer();
-}
-
-// pkg/dist-src/fetch-wrapper.js
-function fetchWrapper(requestOptions) {
-  const log = requestOptions.request && requestOptions.request.log ? requestOptions.request.log : console;
-  const parseSuccessResponseBody = requestOptions.request?.parseSuccessResponseBody !== false;
-  if (dist_bundle_isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body)) {
-    requestOptions.body = JSON.stringify(requestOptions.body);
-  }
-  let headers = {};
-  let status;
-  let url;
-  let { fetch } = globalThis;
-  if (requestOptions.request?.fetch) {
-    fetch = requestOptions.request.fetch;
-  }
+async function fetchWrapper(requestOptions) {
+  const fetch = requestOptions.request?.fetch || globalThis.fetch;
   if (!fetch) {
     throw new Error(
       "fetch is not set. Please pass a fetch implementation as new Octokit({ request: { fetch }}). Learn more at https://github.com/octokit/octokit.js/#fetch-missing"
     );
   }
-  return fetch(requestOptions.url, {
-    method: requestOptions.method,
-    body: requestOptions.body,
-    redirect: requestOptions.request?.redirect,
-    // Header values must be `string`
-    headers: Object.fromEntries(
-      Object.entries(requestOptions.headers).map(([name, value]) => [
-        name,
-        String(value)
-      ])
-    ),
-    signal: requestOptions.request?.signal,
-    // duplex must be set if request.body is ReadableStream or Async Iterables.
-    // See https://fetch.spec.whatwg.org/#dom-requestinit-duplex.
-    ...requestOptions.body && { duplex: "half" }
-  }).then(async (response) => {
-    url = response.url;
-    status = response.status;
-    for (const keyAndValue of response.headers) {
-      headers[keyAndValue[0]] = keyAndValue[1];
-    }
-    if ("deprecation" in headers) {
-      const matches = headers.link && headers.link.match(/<([^>]+)>; rel="deprecation"/);
-      const deprecationLink = matches && matches.pop();
-      log.warn(
-        `[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${headers.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`
-      );
-    }
-    if (status === 204 || status === 205) {
-      return;
-    }
-    if (requestOptions.method === "HEAD") {
-      if (status < 400) {
-        return;
+  const log = requestOptions.request?.log || console;
+  const parseSuccessResponseBody = requestOptions.request?.parseSuccessResponseBody !== false;
+  const body = dist_bundle_isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body) ? JSON.stringify(requestOptions.body) : requestOptions.body;
+  const requestHeaders = Object.fromEntries(
+    Object.entries(requestOptions.headers).map(([name, value]) => [
+      name,
+      String(value)
+    ])
+  );
+  let fetchResponse;
+  try {
+    fetchResponse = await fetch(requestOptions.url, {
+      method: requestOptions.method,
+      body,
+      redirect: requestOptions.request?.redirect,
+      headers: requestHeaders,
+      signal: requestOptions.request?.signal,
+      // duplex must be set if request.body is ReadableStream or Async Iterables.
+      // See https://fetch.spec.whatwg.org/#dom-requestinit-duplex.
+      ...requestOptions.body && { duplex: "half" }
+    });
+  } catch (error) {
+    let message = "Unknown Error";
+    if (error instanceof Error) {
+      if (error.name === "AbortError") {
+        error.status = 500;
+        throw error;
       }
-      throw new RequestError(response.statusText, status, {
-        response: {
-          url,
-          status,
-          headers,
-          data: void 0
-        },
-        request: requestOptions
-      });
-    }
-    if (status === 304) {
-      throw new RequestError("Not modified", status, {
-        response: {
-          url,
-          status,
-          headers,
-          data: await getResponseData(response)
-        },
-        request: requestOptions
-      });
-    }
-    if (status >= 400) {
-      const data = await getResponseData(response);
-      const error = new RequestError(toErrorMessage(data), status, {
-        response: {
-          url,
-          status,
-          headers,
-          data
-        },
-        request: requestOptions
-      });
-      throw error;
-    }
-    return parseSuccessResponseBody ? await getResponseData(response) : response.body;
-  }).then((data) => {
-    return {
-      status,
-      url,
-      headers,
-      data
-    };
-  }).catch((error) => {
-    if (error instanceof RequestError)
-      throw error;
-    else if (error.name === "AbortError")
-      throw error;
-    let message = error.message;
-    if (error.name === "TypeError" && "cause" in error) {
-      if (error.cause instanceof Error) {
-        message = error.cause.message;
-      } else if (typeof error.cause === "string") {
-        message = error.cause;
+      message = error.message;
+      if (error.name === "TypeError" && "cause" in error) {
+        if (error.cause instanceof Error) {
+          message = error.cause.message;
+        } else if (typeof error.cause === "string") {
+          message = error.cause;
+        }
       }
     }
-    throw new RequestError(message, 500, {
+    const requestError = new RequestError(message, 500, {
       request: requestOptions
     });
-  });
+    requestError.cause = error;
+    throw requestError;
+  }
+  const status = fetchResponse.status;
+  const url = fetchResponse.url;
+  const responseHeaders = {};
+  for (const [key, value] of fetchResponse.headers) {
+    responseHeaders[key] = value;
+  }
+  const octokitResponse = {
+    url,
+    status,
+    headers: responseHeaders,
+    data: ""
+  };
+  if ("deprecation" in responseHeaders) {
+    const matches = responseHeaders.link && responseHeaders.link.match(/<([^<>]+)>; rel="deprecation"/);
+    const deprecationLink = matches && matches.pop();
+    log.warn(
+      `[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${responseHeaders.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`
+    );
+  }
+  if (status === 204 || status === 205) {
+    return octokitResponse;
+  }
+  if (requestOptions.method === "HEAD") {
+    if (status < 400) {
+      return octokitResponse;
+    }
+    throw new RequestError(fetchResponse.statusText, status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  if (status === 304) {
+    octokitResponse.data = await getResponseData(fetchResponse);
+    throw new RequestError("Not modified", status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  if (status >= 400) {
+    octokitResponse.data = await getResponseData(fetchResponse);
+    throw new RequestError(toErrorMessage(octokitResponse.data), status, {
+      response: octokitResponse,
+      request: requestOptions
+    });
+  }
+  octokitResponse.data = parseSuccessResponseBody ? await getResponseData(fetchResponse) : fetchResponse.body;
+  return octokitResponse;
 }
 async function getResponseData(response) {
   const contentType = response.headers.get("content-type");
-  if (/application\/json/.test(contentType)) {
-    return response.json().catch(() => response.text()).catch(() => "");
+  if (!contentType) {
+    return response.text().catch(() => "");
   }
-  if (!contentType || /^text\/|charset=utf-8$/.test(contentType)) {
-    return response.text();
+  const mimetype = (0,fast_content_type_parse/* safeParse */.xL)(contentType);
+  if (isJSONResponse(mimetype)) {
+    let text = "";
+    try {
+      text = await response.text();
+      return JSON.parse(text);
+    } catch (err) {
+      return text;
+    }
+  } else if (mimetype.type.startsWith("text/") || mimetype.parameters.charset?.toLowerCase() === "utf-8") {
+    return response.text().catch(() => "");
+  } else {
+    return response.arrayBuffer().catch(() => new ArrayBuffer(0));
   }
-  return getBufferResponse(response);
+}
+function isJSONResponse(mimetype) {
+  return mimetype.type === "application/json" || mimetype.type === "application/scim+json";
 }
 function toErrorMessage(data) {
-  if (typeof data === "string")
+  if (typeof data === "string") {
     return data;
-  let suffix;
-  if ("documentation_url" in data) {
-    suffix = ` - ${data.documentation_url}`;
-  } else {
-    suffix = "";
+  }
+  if (data instanceof ArrayBuffer) {
+    return "Unknown error";
   }
   if ("message" in data) {
-    if (Array.isArray(data.errors)) {
-      return `${data.message}: ${data.errors.map(JSON.stringify).join(", ")}${suffix}`;
-    }
-    return `${data.message}${suffix}`;
+    const suffix = "documentation_url" in data ? ` - ${data.documentation_url}` : "";
+    return Array.isArray(data.errors) ? `${data.message}: ${data.errors.map((v) => JSON.stringify(v)).join(", ")}${suffix}` : `${data.message}${suffix}`;
   }
   return `Unknown error: ${JSON.stringify(data)}`;
 }
@@ -100985,11 +101442,7 @@ function dist_bundle_withDefaults(oldEndpoint, newDefaults) {
 }
 
 // pkg/dist-src/index.js
-var request = dist_bundle_withDefaults(endpoint, {
-  headers: {
-    "user-agent": `octokit-request.js/${dist_bundle_VERSION} ${getUserAgent()}`
-  }
-});
+var request = dist_bundle_withDefaults(endpoint, defaults_default);
 
 
 ;// CONCATENATED MODULE: ./node_modules/@octokit/core/node_modules/@octokit/graphql/dist-bundle/index.js
@@ -101036,7 +101489,8 @@ var NON_VARIABLE_OPTIONS = [
   "headers",
   "request",
   "query",
-  "mediaType"
+  "mediaType",
+  "operationName"
 ];
 var FORBIDDEN_VARIABLE_OPTIONS = ["query", "method", "url"];
 var GHES_V3_SUFFIX_REGEX = /\/api\/v3\/?$/;
@@ -101048,8 +101502,7 @@ function graphql(request2, query, options) {
       );
     }
     for (const key in options) {
-      if (!FORBIDDEN_VARIABLE_OPTIONS.includes(key))
-        continue;
+      if (!FORBIDDEN_VARIABLE_OPTIONS.includes(key)) continue;
       return Promise.reject(
         new Error(
           `[@octokit/graphql] "${key}" cannot be used as variable name`
@@ -101120,14 +101573,17 @@ function withCustomRequest(customRequest) {
 
 
 ;// CONCATENATED MODULE: ./node_modules/@octokit/core/node_modules/@octokit/auth-token/dist-bundle/index.js
+// pkg/dist-src/is-jwt.js
+var b64url = "(?:[a-zA-Z0-9_-]+)";
+var sep = "\\.";
+var jwtRE = new RegExp(`^${b64url}${sep}${b64url}${sep}${b64url}$`);
+var isJWT = jwtRE.test.bind(jwtRE);
+
 // pkg/dist-src/auth.js
-var REGEX_IS_INSTALLATION_LEGACY = /^v1\./;
-var REGEX_IS_INSTALLATION = /^ghs_/;
-var REGEX_IS_USER_TO_SERVER = /^ghu_/;
 async function auth(token) {
-  const isApp = token.split(/\./).length === 3;
-  const isInstallation = REGEX_IS_INSTALLATION_LEGACY.test(token) || REGEX_IS_INSTALLATION.test(token);
-  const isUserToServer = REGEX_IS_USER_TO_SERVER.test(token);
+  const isApp = isJWT(token);
+  const isInstallation = token.startsWith("v1.") || token.startsWith("ghs_");
+  const isUserToServer = token.startsWith("ghu_");
   const tokenType = isApp ? "app" : isInstallation ? "installation" : isUserToServer ? "user-to-server" : "oauth";
   return {
     type: "token",
@@ -101172,7 +101628,7 @@ var createTokenAuth = function createTokenAuth2(token) {
 
 
 ;// CONCATENATED MODULE: ./node_modules/@octokit/core/dist-src/version.js
-const version_VERSION = "6.1.2";
+const version_VERSION = "6.1.4";
 
 
 ;// CONCATENATED MODULE: ./node_modules/@octokit/core/dist-src/index.js
@@ -105423,6 +105879,8 @@ var triggers_notification_paths_default = [
   "/repos/{owner}/{repo}/commits/{commit_sha}/comments",
   "/repos/{owner}/{repo}/issues",
   "/repos/{owner}/{repo}/issues/{issue_number}/comments",
+  "/repos/{owner}/{repo}/issues/{issue_number}/sub_issue",
+  "/repos/{owner}/{repo}/issues/{issue_number}/sub_issues/priority",
   "/repos/{owner}/{repo}/pulls",
   "/repos/{owner}/{repo}/pulls/{pull_number}/comments",
   "/repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies",
@@ -105827,6 +106285,13 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("https");
 /***/ ((module) => {
 
 module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("net");
+
+/***/ }),
+
+/***/ 77598:
+/***/ ((module) => {
+
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:crypto");
 
 /***/ }),
 
@@ -107583,6 +108048,183 @@ module.exports = parseParams
 
 /***/ }),
 
+/***/ 41120:
+/***/ ((module) => {
+
+var __webpack_unused_export__;
+
+
+const NullObject = function NullObject () { }
+NullObject.prototype = Object.create(null)
+
+/**
+ * RegExp to match *( ";" parameter ) in RFC 7231 sec 3.1.1.1
+ *
+ * parameter     = token "=" ( token / quoted-string )
+ * token         = 1*tchar
+ * tchar         = "!" / "#" / "$" / "%" / "&" / "'" / "*"
+ *               / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+ *               / DIGIT / ALPHA
+ *               ; any VCHAR, except delimiters
+ * quoted-string = DQUOTE *( qdtext / quoted-pair ) DQUOTE
+ * qdtext        = HTAB / SP / %x21 / %x23-5B / %x5D-7E / obs-text
+ * obs-text      = %x80-FF
+ * quoted-pair   = "\" ( HTAB / SP / VCHAR / obs-text )
+ */
+const paramRE = /; *([!#$%&'*+.^\w`|~-]+)=("(?:[\v\u0020\u0021\u0023-\u005b\u005d-\u007e\u0080-\u00ff]|\\[\v\u0020-\u00ff])*"|[!#$%&'*+.^\w`|~-]+) */gu
+
+/**
+ * RegExp to match quoted-pair in RFC 7230 sec 3.2.6
+ *
+ * quoted-pair = "\" ( HTAB / SP / VCHAR / obs-text )
+ * obs-text    = %x80-FF
+ */
+const quotedPairRE = /\\([\v\u0020-\u00ff])/gu
+
+/**
+ * RegExp to match type in RFC 7231 sec 3.1.1.1
+ *
+ * media-type = type "/" subtype
+ * type       = token
+ * subtype    = token
+ */
+const mediaTypeRE = /^[!#$%&'*+.^\w|~-]+\/[!#$%&'*+.^\w|~-]+$/u
+
+// default ContentType to prevent repeated object creation
+const defaultContentType = { type: '', parameters: new NullObject() }
+Object.freeze(defaultContentType.parameters)
+Object.freeze(defaultContentType)
+
+/**
+ * Parse media type to object.
+ *
+ * @param {string|object} header
+ * @return {Object}
+ * @public
+ */
+
+function parse (header) {
+  if (typeof header !== 'string') {
+    throw new TypeError('argument header is required and must be a string')
+  }
+
+  let index = header.indexOf(';')
+  const type = index !== -1
+    ? header.slice(0, index).trim()
+    : header.trim()
+
+  if (mediaTypeRE.test(type) === false) {
+    throw new TypeError('invalid media type')
+  }
+
+  const result = {
+    type: type.toLowerCase(),
+    parameters: new NullObject()
+  }
+
+  // parse parameters
+  if (index === -1) {
+    return result
+  }
+
+  let key
+  let match
+  let value
+
+  paramRE.lastIndex = index
+
+  while ((match = paramRE.exec(header))) {
+    if (match.index !== index) {
+      throw new TypeError('invalid parameter format')
+    }
+
+    index += match[0].length
+    key = match[1].toLowerCase()
+    value = match[2]
+
+    if (value[0] === '"') {
+      // remove quotes and escapes
+      value = value
+        .slice(1, value.length - 1)
+
+      quotedPairRE.test(value) && (value = value.replace(quotedPairRE, '$1'))
+    }
+
+    result.parameters[key] = value
+  }
+
+  if (index !== header.length) {
+    throw new TypeError('invalid parameter format')
+  }
+
+  return result
+}
+
+function safeParse (header) {
+  if (typeof header !== 'string') {
+    return defaultContentType
+  }
+
+  let index = header.indexOf(';')
+  const type = index !== -1
+    ? header.slice(0, index).trim()
+    : header.trim()
+
+  if (mediaTypeRE.test(type) === false) {
+    return defaultContentType
+  }
+
+  const result = {
+    type: type.toLowerCase(),
+    parameters: new NullObject()
+  }
+
+  // parse parameters
+  if (index === -1) {
+    return result
+  }
+
+  let key
+  let match
+  let value
+
+  paramRE.lastIndex = index
+
+  while ((match = paramRE.exec(header))) {
+    if (match.index !== index) {
+      return defaultContentType
+    }
+
+    index += match[0].length
+    key = match[1].toLowerCase()
+    value = match[2]
+
+    if (value[0] === '"') {
+      // remove quotes and escapes
+      value = value
+        .slice(1, value.length - 1)
+
+      quotedPairRE.test(value) && (value = value.replace(quotedPairRE, '$1'))
+    }
+
+    result.parameters[key] = value
+  }
+
+  if (index !== header.length) {
+    return defaultContentType
+  }
+
+  return result
+}
+
+__webpack_unused_export__ = { parse, safeParse }
+__webpack_unused_export__ = parse
+module.exports.xL = safeParse
+__webpack_unused_export__ = defaultContentType
+
+
+/***/ }),
+
 /***/ 71204:
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -107641,13 +108283,588 @@ try {
 
 /***/ }),
 
+/***/ 34859:
+/***/ ((module) => {
+
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var __accessCheck = (obj, member, msg) => {
+  if (!member.has(obj))
+    throw TypeError("Cannot " + msg);
+};
+var __privateGet = (obj, member, getter) => {
+  __accessCheck(obj, member, "read from private field");
+  return getter ? getter.call(obj) : member.get(obj);
+};
+var __privateAdd = (obj, member, value) => {
+  if (member.has(obj))
+    throw TypeError("Cannot add the same private member more than once");
+  member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
+};
+var __privateSet = (obj, member, value, setter) => {
+  __accessCheck(obj, member, "write to private field");
+  setter ? setter.call(obj, value) : member.set(obj, value);
+  return value;
+};
+var __privateMethod = (obj, member, method) => {
+  __accessCheck(obj, member, "access private method");
+  return method;
+};
+
+// src/index.ts
+var src_exports = {};
+__export(src_exports, {
+  Blob: () => Blob,
+  File: () => File,
+  FormData: () => FormData
+});
+module.exports = __toCommonJS(src_exports);
+
+// src/isFunction.ts
+var isFunction = (value) => typeof value === "function";
+
+// src/isObject.ts
+var isObject = (value) => typeof value === "object" && value != null && !Array.isArray(value);
+
+// src/isAsyncIterable.ts
+var isAsyncIterable = (value) => isObject(value) && isFunction(value[Symbol.asyncIterator]);
+
+// src/blobHelpers.ts
+var MAX_CHUNK_SIZE = 65536;
+async function* clonePart(value) {
+  if (value.byteLength <= MAX_CHUNK_SIZE) {
+    yield value;
+    return;
+  }
+  let offset = 0;
+  while (offset < value.byteLength) {
+    const size = Math.min(value.byteLength - offset, MAX_CHUNK_SIZE);
+    const buffer = value.buffer.slice(offset, offset + size);
+    offset += buffer.byteLength;
+    yield new Uint8Array(buffer);
+  }
+}
+async function* readStream(readable) {
+  const reader = readable.getReader();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    yield value;
+  }
+}
+async function* chunkStream(stream) {
+  for await (const value of stream) {
+    yield* clonePart(value);
+  }
+}
+var getStreamIterator = (source) => {
+  if (isAsyncIterable(source)) {
+    return chunkStream(source);
+  }
+  if (isFunction(source.getReader)) {
+    return chunkStream(readStream(source));
+  }
+  throw new TypeError(
+    "Unsupported data source: Expected either ReadableStream or async iterable."
+  );
+};
+async function* consumeNodeBlob(blob) {
+  let position = 0;
+  while (position !== blob.size) {
+    const chunk = blob.slice(
+      position,
+      Math.min(blob.size, position + MAX_CHUNK_SIZE)
+    );
+    const buffer = await chunk.arrayBuffer();
+    position += buffer.byteLength;
+    yield new Uint8Array(buffer);
+  }
+}
+async function* consumeBlobParts(parts, clone = false) {
+  for (const part of parts) {
+    if (ArrayBuffer.isView(part)) {
+      if (clone) {
+        yield* clonePart(part);
+      } else {
+        yield part;
+      }
+    } else if (isFunction(part.stream)) {
+      yield* getStreamIterator(part.stream());
+    } else {
+      yield* consumeNodeBlob(part);
+    }
+  }
+}
+function* sliceBlob(blobParts, blobSize, start = 0, end) {
+  end ??= blobSize;
+  let relativeStart = start < 0 ? Math.max(blobSize + start, 0) : Math.min(start, blobSize);
+  let relativeEnd = end < 0 ? Math.max(blobSize + end, 0) : Math.min(end, blobSize);
+  const span = Math.max(relativeEnd - relativeStart, 0);
+  let added = 0;
+  for (const part of blobParts) {
+    if (added >= span) {
+      break;
+    }
+    const partSize = ArrayBuffer.isView(part) ? part.byteLength : part.size;
+    if (relativeStart && partSize <= relativeStart) {
+      relativeStart -= partSize;
+      relativeEnd -= partSize;
+    } else {
+      let chunk;
+      if (ArrayBuffer.isView(part)) {
+        chunk = part.subarray(relativeStart, Math.min(partSize, relativeEnd));
+        added += chunk.byteLength;
+      } else {
+        chunk = part.slice(relativeStart, Math.min(partSize, relativeEnd));
+        added += chunk.size;
+      }
+      relativeEnd -= partSize;
+      relativeStart = 0;
+      yield chunk;
+    }
+  }
+}
+
+// src/Blob.ts
+var _parts, _type, _size;
+var _Blob = class _Blob {
+  /**
+   * Returns a new [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob) object.
+   * The content of the blob consists of the concatenation of the values given in the parameter array.
+   *
+   * @param blobParts An `Array` strings, or [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer), [`ArrayBufferView`](https://developer.mozilla.org/en-US/docs/Web/API/ArrayBufferView), [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob) objects, or a mix of any of such objects, that will be put inside the [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob).
+   * @param options An optional object of type `BlobPropertyBag`.
+   */
+  constructor(blobParts = [], options = {}) {
+    /**
+     * An `Array` of [`ArrayBufferView`](https://developer.mozilla.org/en-US/docs/Web/API/ArrayBufferView) or [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob) objects, or a mix of any of such objects, that will be put inside the [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob).
+     */
+    __privateAdd(this, _parts, []);
+    /**
+     * Returns the [`MIME type`](https://developer.mozilla.org/en-US/docs/Glossary/MIME_type) of the [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob) or [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File).
+     */
+    __privateAdd(this, _type, "");
+    /**
+     * Returns the size of the [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob) or [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File) in bytes.
+     */
+    __privateAdd(this, _size, 0);
+    options ??= {};
+    if (typeof blobParts !== "object" || blobParts === null) {
+      throw new TypeError(
+        "Failed to construct 'Blob': The provided value cannot be converted to a sequence."
+      );
+    }
+    if (!isFunction(blobParts[Symbol.iterator])) {
+      throw new TypeError(
+        "Failed to construct 'Blob': The object must have a callable @@iterator property."
+      );
+    }
+    if (typeof options !== "object" && !isFunction(options)) {
+      throw new TypeError(
+        "Failed to construct 'Blob': parameter 2 cannot convert to dictionary."
+      );
+    }
+    const encoder = new TextEncoder();
+    for (const raw of blobParts) {
+      let part;
+      if (ArrayBuffer.isView(raw)) {
+        part = new Uint8Array(raw.buffer.slice(
+          raw.byteOffset,
+          raw.byteOffset + raw.byteLength
+        ));
+      } else if (raw instanceof ArrayBuffer) {
+        part = new Uint8Array(raw.slice(0));
+      } else if (raw instanceof _Blob) {
+        part = raw;
+      } else {
+        part = encoder.encode(String(raw));
+      }
+      __privateSet(this, _size, __privateGet(this, _size) + (ArrayBuffer.isView(part) ? part.byteLength : part.size));
+      __privateGet(this, _parts).push(part);
+    }
+    const type = options.type === void 0 ? "" : String(options.type);
+    __privateSet(this, _type, /^[\x20-\x7E]*$/.test(type) ? type : "");
+  }
+  static [Symbol.hasInstance](value) {
+    return Boolean(
+      value && typeof value === "object" && isFunction(value.constructor) && (isFunction(value.stream) || isFunction(value.arrayBuffer)) && /^(Blob|File)$/.test(value[Symbol.toStringTag])
+    );
+  }
+  /**
+   * Returns the [`MIME type`](https://developer.mozilla.org/en-US/docs/Glossary/MIME_type) of the [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob) or [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File).
+   */
+  get type() {
+    return __privateGet(this, _type);
+  }
+  /**
+   * Returns the size of the [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob) or [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File) in bytes.
+   */
+  get size() {
+    return __privateGet(this, _size);
+  }
+  /**
+   * Creates and returns a new [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob) object which contains data from a subset of the blob on which it's called.
+   *
+   * @param start An index into the Blob indicating the first byte to include in the new Blob. If you specify a negative value, it's treated as an offset from the end of the Blob toward the beginning. For example, -10 would be the 10th from last byte in the Blob. The default value is 0. If you specify a value for start that is larger than the size of the source Blob, the returned Blob has size 0 and contains no data.
+   * @param end An index into the Blob indicating the first byte that will *not* be included in the new Blob (i.e. the byte exactly at this index is not included). If you specify a negative value, it's treated as an offset from the end of the Blob toward the beginning. For example, -10 would be the 10th from last byte in the Blob. The default value is size.
+   * @param contentType The content type to assign to the new Blob; this will be the value of its type property. The default value is an empty string.
+   */
+  slice(start, end, contentType) {
+    return new _Blob(sliceBlob(__privateGet(this, _parts), this.size, start, end), {
+      type: contentType
+    });
+  }
+  /**
+   * Returns a [`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that resolves with a string containing the contents of the blob, interpreted as UTF-8.
+   */
+  async text() {
+    const decoder = new TextDecoder();
+    let result = "";
+    for await (const chunk of consumeBlobParts(__privateGet(this, _parts))) {
+      result += decoder.decode(chunk, { stream: true });
+    }
+    result += decoder.decode();
+    return result;
+  }
+  /**
+   * Returns a [`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that resolves with the contents of the blob as binary data contained in an [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer).
+   */
+  async arrayBuffer() {
+    const view = new Uint8Array(this.size);
+    let offset = 0;
+    for await (const chunk of consumeBlobParts(__privateGet(this, _parts))) {
+      view.set(chunk, offset);
+      offset += chunk.length;
+    }
+    return view.buffer;
+  }
+  /**
+   * Returns a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) which upon reading returns the data contained within the [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob).
+   */
+  stream() {
+    const iterator = consumeBlobParts(__privateGet(this, _parts), true);
+    return new ReadableStream({
+      async pull(controller) {
+        const { value, done } = await iterator.next();
+        if (done) {
+          return queueMicrotask(() => controller.close());
+        }
+        controller.enqueue(value);
+      },
+      async cancel() {
+        await iterator.return();
+      }
+    });
+  }
+  get [Symbol.toStringTag]() {
+    return "Blob";
+  }
+};
+_parts = new WeakMap();
+_type = new WeakMap();
+_size = new WeakMap();
+var Blob = _Blob;
+Object.defineProperties(Blob.prototype, {
+  type: { enumerable: true },
+  size: { enumerable: true },
+  slice: { enumerable: true },
+  stream: { enumerable: true },
+  text: { enumerable: true },
+  arrayBuffer: { enumerable: true }
+});
+
+// src/isBlob.ts
+var isBlob = (value) => value instanceof Blob;
+
+// src/File.ts
+var _name, _lastModified;
+var File = class extends Blob {
+  /**
+   * Creates a new File instance.
+   *
+   * @param fileBits An `Array` strings, or [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer), [`ArrayBufferView`](https://developer.mozilla.org/en-US/docs/Web/API/ArrayBufferView), [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob) objects, or a mix of any of such objects, that will be put inside the [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File).
+   * @param name The name of the file.
+   * @param options An options object containing optional attributes for the file.
+   */
+  constructor(fileBits, name, options = {}) {
+    super(fileBits, options);
+    /**
+     * Returns the name of the file referenced by the File object.
+     */
+    __privateAdd(this, _name, void 0);
+    /**
+     * The last modified date of the file as the number of milliseconds since the Unix epoch (January 1, 1970 at midnight). Files without a known last modified date return the current date.
+     */
+    __privateAdd(this, _lastModified, 0);
+    if (arguments.length < 2) {
+      throw new TypeError(
+        `Failed to construct 'File': 2 arguments required, but only ${arguments.length} present.`
+      );
+    }
+    __privateSet(this, _name, String(name));
+    const lastModified = options.lastModified === void 0 ? Date.now() : Number(options.lastModified);
+    if (!Number.isNaN(lastModified)) {
+      __privateSet(this, _lastModified, lastModified);
+    }
+  }
+  static [Symbol.hasInstance](value) {
+    return value instanceof Blob && value[Symbol.toStringTag] === "File" && typeof value.name === "string";
+  }
+  /**
+   * Name of the file referenced by the File object.
+   */
+  get name() {
+    return __privateGet(this, _name);
+  }
+  /* c8 ignore next 3 */
+  get webkitRelativePath() {
+    return "";
+  }
+  /**
+   * The last modified date of the file as the number of milliseconds since the Unix epoch (January 1, 1970 at midnight). Files without a known last modified date return the current date.
+   */
+  get lastModified() {
+    return __privateGet(this, _lastModified);
+  }
+  get [Symbol.toStringTag]() {
+    return "File";
+  }
+};
+_name = new WeakMap();
+_lastModified = new WeakMap();
+
+// src/isFile.ts
+var isFile = (value) => value instanceof File;
+
+// src/FormData.ts
+var _entries, _setEntry, setEntry_fn;
+var FormData = class {
+  constructor() {
+    __privateAdd(this, _setEntry);
+    /**
+     * Stores internal data for every entry
+     */
+    __privateAdd(this, _entries, /* @__PURE__ */ new Map());
+  }
+  static [Symbol.hasInstance](value) {
+    if (!value) {
+      return false;
+    }
+    const val = value;
+    return Boolean(
+      isFunction(val.constructor) && val[Symbol.toStringTag] === "FormData" && isFunction(val.append) && isFunction(val.set) && isFunction(val.get) && isFunction(val.getAll) && isFunction(val.has) && isFunction(val.delete) && isFunction(val.entries) && isFunction(val.values) && isFunction(val.keys) && isFunction(val[Symbol.iterator]) && isFunction(val.forEach)
+    );
+  }
+  /**
+   * Appends a new value onto an existing key inside a FormData object,
+   * or adds the key if it does not already exist.
+   *
+   * The difference between `set()` and `append()` is that if the specified key already exists, `set()` will overwrite all existing values with the new one, whereas `append()` will append the new value onto the end of the existing set of values.
+   *
+   * @param name The name of the field whose data is contained in `value`.
+   * @param value The field's value. This can be [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob)
+    or [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File). If none of these are specified the value is converted to a string.
+   * @param fileName The filename reported to the server, when a Blob or File is passed as the second parameter. The default filename for Blob objects is "blob". The default filename for File objects is the file's filename.
+   */
+  append(name, value, fileName) {
+    __privateMethod(this, _setEntry, setEntry_fn).call(this, {
+      name,
+      fileName,
+      append: true,
+      rawValue: value,
+      argsLength: arguments.length
+    });
+  }
+  /**
+   * Set a new value for an existing key inside FormData,
+   * or add the new field if it does not already exist.
+   *
+   * @param name The name of the field whose data is contained in `value`.
+   * @param value The field's value. This can be [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob)
+    or [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File). If none of these are specified the value is converted to a string.
+   * @param fileName The filename reported to the server, when a Blob or File is passed as the second parameter. The default filename for Blob objects is "blob". The default filename for File objects is the file's filename.
+   *
+   */
+  set(name, value, fileName) {
+    __privateMethod(this, _setEntry, setEntry_fn).call(this, {
+      name,
+      fileName,
+      append: false,
+      rawValue: value,
+      argsLength: arguments.length
+    });
+  }
+  /**
+   * Returns the first value associated with a given key from within a `FormData` object.
+   * If you expect multiple values and want all of them, use the `getAll()` method instead.
+   *
+   * @param {string} name A name of the value you want to retrieve.
+   *
+   * @returns A `FormDataEntryValue` containing the value. If the key doesn't exist, the method returns null.
+   */
+  get(name) {
+    const field = __privateGet(this, _entries).get(String(name));
+    if (!field) {
+      return null;
+    }
+    return field[0];
+  }
+  /**
+   * Returns all the values associated with a given key from within a `FormData` object.
+   *
+   * @param {string} name A name of the value you want to retrieve.
+   *
+   * @returns An array of `FormDataEntryValue` whose key matches the value passed in the `name` parameter. If the key doesn't exist, the method returns an empty list.
+   */
+  getAll(name) {
+    const field = __privateGet(this, _entries).get(String(name));
+    if (!field) {
+      return [];
+    }
+    return field.slice();
+  }
+  /**
+   * Returns a boolean stating whether a `FormData` object contains a certain key.
+   *
+   * @param name A string representing the name of the key you want to test for.
+   *
+   * @return A boolean value.
+   */
+  has(name) {
+    return __privateGet(this, _entries).has(String(name));
+  }
+  /**
+   * Deletes a key and its value(s) from a `FormData` object.
+   *
+   * @param name The name of the key you want to delete.
+   */
+  delete(name) {
+    __privateGet(this, _entries).delete(String(name));
+  }
+  /**
+   * Returns an [`iterator`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols) allowing to go through all keys contained in this `FormData` object.
+   * Each key is a `string`.
+   */
+  *keys() {
+    for (const key of __privateGet(this, _entries).keys()) {
+      yield key;
+    }
+  }
+  /**
+   * Returns an [`iterator`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols) allowing to go through the `FormData` key/value pairs.
+   * The key of each pair is a string; the value is a [`FormDataValue`](https://developer.mozilla.org/en-US/docs/Web/API/FormDataEntryValue).
+   */
+  *entries() {
+    for (const name of this.keys()) {
+      const values = this.getAll(name);
+      for (const value of values) {
+        yield [name, value];
+      }
+    }
+  }
+  /**
+   * Returns an [`iterator`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols) allowing to go through all values contained in this object `FormData` object.
+   * Each value is a [`FormDataValue`](https://developer.mozilla.org/en-US/docs/Web/API/FormDataEntryValue).
+   */
+  *values() {
+    for (const [, value] of this) {
+      yield value;
+    }
+  }
+  /**
+   * An alias for FormData#entries()
+   */
+  [Symbol.iterator]() {
+    return this.entries();
+  }
+  /**
+   * Executes given callback function for each field of the FormData instance
+   */
+  forEach(callback, thisArg) {
+    for (const [name, value] of this) {
+      callback.call(thisArg, value, name, this);
+    }
+  }
+  get [Symbol.toStringTag]() {
+    return "FormData";
+  }
+};
+_entries = new WeakMap();
+_setEntry = new WeakSet();
+setEntry_fn = function({
+  name,
+  rawValue,
+  append,
+  fileName,
+  argsLength
+}) {
+  const methodName = append ? "append" : "set";
+  if (argsLength < 2) {
+    throw new TypeError(
+      `Failed to execute '${methodName}' on 'FormData': 2 arguments required, but only ${argsLength} present.`
+    );
+  }
+  name = String(name);
+  let value;
+  if (isFile(rawValue)) {
+    value = fileName === void 0 ? rawValue : new File([rawValue], fileName, {
+      // otherwise, create new File with given fileName
+      type: rawValue.type,
+      lastModified: rawValue.lastModified
+    });
+  } else if (isBlob(rawValue)) {
+    value = new File([rawValue], fileName === void 0 ? "blob" : fileName, {
+      type: rawValue.type
+    });
+  } else if (fileName) {
+    throw new TypeError(
+      `Failed to execute '${methodName}' on 'FormData': parameter 2 is not of type 'Blob'.`
+    );
+  } else {
+    value = String(rawValue);
+  }
+  const values = __privateGet(this, _entries).get(name);
+  if (!values) {
+    return void __privateGet(this, _entries).set(name, [value]);
+  }
+  if (!append) {
+    return void __privateGet(this, _entries).set(name, [value]);
+  }
+  values.push(value);
+};
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+/*! Based on fetch-blob. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> & David Frank */
+
+
+/***/ }),
+
 /***/ 68164:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-// Axios v1.7.9 Copyright (c) 2024 Matt Zabriskie and contributors
+/*! Axios v1.8.1 Copyright (c) 2025 Matt Zabriskie and contributors */
 
 
-const FormData$1 = __nccwpck_require__(50809);
+const FormData$1 = __nccwpck_require__(96454);
+const crypto = __nccwpck_require__(76982);
 const url = __nccwpck_require__(87016);
 const proxyFromEnv = __nccwpck_require__(77777);
 const http = __nccwpck_require__(58611);
@@ -107661,6 +108878,7 @@ const events = __nccwpck_require__(24434);
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
 const FormData__default = /*#__PURE__*/_interopDefaultLegacy(FormData$1);
+const crypto__default = /*#__PURE__*/_interopDefaultLegacy(crypto);
 const url__default = /*#__PURE__*/_interopDefaultLegacy(url);
 const proxyFromEnv__default = /*#__PURE__*/_interopDefaultLegacy(proxyFromEnv);
 const http__default = /*#__PURE__*/_interopDefaultLegacy(http);
@@ -108276,26 +109494,6 @@ const toFiniteNumber = (value, defaultValue) => {
   return value != null && Number.isFinite(value = +value) ? value : defaultValue;
 };
 
-const ALPHA = 'abcdefghijklmnopqrstuvwxyz';
-
-const DIGIT = '0123456789';
-
-const ALPHABET = {
-  DIGIT,
-  ALPHA,
-  ALPHA_DIGIT: ALPHA + ALPHA.toUpperCase() + DIGIT
-};
-
-const generateString = (size = 16, alphabet = ALPHABET.ALPHA_DIGIT) => {
-  let str = '';
-  const {length} = alphabet;
-  while (size--) {
-    str += alphabet[Math.random() * length|0];
-  }
-
-  return str;
-};
-
 /**
  * If the thing is a FormData object, return true, otherwise return false.
  *
@@ -108423,8 +109621,6 @@ const utils$1 = {
   findKey,
   global: _global,
   isContextDefined,
-  ALPHABET,
-  generateString,
   isSpecCompliantForm,
   toJSONObject,
   isAsyncFn,
@@ -108936,6 +110132,29 @@ const transitionalDefaults = {
 
 const URLSearchParams = url__default["default"].URLSearchParams;
 
+const ALPHA = 'abcdefghijklmnopqrstuvwxyz';
+
+const DIGIT = '0123456789';
+
+const ALPHABET = {
+  DIGIT,
+  ALPHA,
+  ALPHA_DIGIT: ALPHA + ALPHA.toUpperCase() + DIGIT
+};
+
+const generateString = (size = 16, alphabet = ALPHABET.ALPHA_DIGIT) => {
+  let str = '';
+  const {length} = alphabet;
+  const randomValues = new Uint32Array(size);
+  crypto__default["default"].randomFillSync(randomValues);
+  for (let i = 0; i < size; i++) {
+    str += alphabet[randomValues[i] % length];
+  }
+
+  return str;
+};
+
+
 const platform$1 = {
   isNode: true,
   classes: {
@@ -108943,6 +110162,8 @@ const platform$1 = {
     FormData: FormData__default["default"],
     Blob: typeof Blob !== 'undefined' && Blob || null
   },
+  ALPHABET,
+  generateString,
   protocols: [ 'http', 'https', 'file', 'data' ]
 };
 
@@ -109717,14 +110938,15 @@ function combineURLs(baseURL, relativeURL) {
  *
  * @returns {string} The combined full path
  */
-function buildFullPath(baseURL, requestedURL) {
-  if (baseURL && !isAbsoluteURL(requestedURL)) {
+function buildFullPath(baseURL, requestedURL, allowAbsoluteUrls) {
+  let isRelativeUrl = !isAbsoluteURL(requestedURL);
+  if (baseURL && isRelativeUrl || allowAbsoluteUrls == false) {
     return combineURLs(baseURL, requestedURL);
   }
   return requestedURL;
 }
 
-const VERSION = "1.7.9";
+const VERSION = "1.8.1";
 
 function parseProtocol(url) {
   const match = /^([-+\w]{1,25})(:?\/\/|:)/.exec(url);
@@ -109934,7 +111156,7 @@ const readBlob = async function* (blob) {
 
 const readBlob$1 = readBlob;
 
-const BOUNDARY_ALPHABET = utils$1.ALPHABET.ALPHA_DIGIT + '-_';
+const BOUNDARY_ALPHABET = platform.ALPHABET.ALPHA_DIGIT + '-_';
 
 const textEncoder = typeof TextEncoder === 'function' ? new TextEncoder() : new util__default["default"].TextEncoder();
 
@@ -109994,7 +111216,7 @@ const formDataToStream = (form, headersHandler, options) => {
   const {
     tag = 'form-data-boundary',
     size = 25,
-    boundary = tag + '-' + utils$1.generateString(size, BOUNDARY_ALPHABET)
+    boundary = tag + '-' + platform.generateString(size, BOUNDARY_ALPHABET)
   } = options || {};
 
   if(!utils$1.isFormData(form)) {
@@ -111950,6 +113172,13 @@ class Axios {
       }
     }
 
+    // Set config.allowAbsoluteUrls
+    if (config.allowAbsoluteUrls !== undefined) ; else if (this.defaults.allowAbsoluteUrls !== undefined) {
+      config.allowAbsoluteUrls = this.defaults.allowAbsoluteUrls;
+    } else {
+      config.allowAbsoluteUrls = true;
+    }
+
     validator.assertOptions(config, {
       baseUrl: validators.spelling('baseURL'),
       withXsrfToken: validators.spelling('withXSRFToken')
@@ -112045,7 +113274,7 @@ class Axios {
 
   getUri(config) {
     config = mergeConfig(this.defaults, config);
-    const fullPath = buildFullPath(config.baseURL, config.url);
+    const fullPath = buildFullPath(config.baseURL, config.url, config.allowAbsoluteUrls);
     return buildURL(fullPath, config.params, config.paramsSerializer);
   }
 }
@@ -117056,7 +118285,23 @@ ZodReadonly.create = (type, params) => {
         ...processCreateParams(params),
     });
 };
-function custom(check, params = {}, 
+////////////////////////////////////////
+////////////////////////////////////////
+//////////                    //////////
+//////////      z.custom      //////////
+//////////                    //////////
+////////////////////////////////////////
+////////////////////////////////////////
+function cleanParams(params, data) {
+    const p = typeof params === "function"
+        ? params(data)
+        : typeof params === "string"
+            ? { message: params }
+            : params;
+    const p2 = typeof p === "string" ? { message: p } : p;
+    return p2;
+}
+function custom(check, _params = {}, 
 /**
  * @deprecated
  *
@@ -117071,16 +118316,23 @@ fatal) {
     if (check)
         return ZodAny.create().superRefine((data, ctx) => {
             var _a, _b;
-            if (!check(data)) {
-                const p = typeof params === "function"
-                    ? params(data)
-                    : typeof params === "string"
-                        ? { message: params }
-                        : params;
-                const _fatal = (_b = (_a = p.fatal) !== null && _a !== void 0 ? _a : fatal) !== null && _b !== void 0 ? _b : true;
-                const p2 = typeof p === "string" ? { message: p } : p;
-                ctx.addIssue({ code: "custom", ...p2, fatal: _fatal });
+            const r = check(data);
+            if (r instanceof Promise) {
+                return r.then((r) => {
+                    var _a, _b;
+                    if (!r) {
+                        const params = cleanParams(_params, data);
+                        const _fatal = (_b = (_a = params.fatal) !== null && _a !== void 0 ? _a : fatal) !== null && _b !== void 0 ? _b : true;
+                        ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
+                    }
+                });
             }
+            if (!r) {
+                const params = cleanParams(_params, data);
+                const _fatal = (_b = (_a = params.fatal) !== null && _a !== void 0 ? _a : fatal) !== null && _b !== void 0 ? _b : true;
+                ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
+            }
+            return;
         });
     return ZodAny.create();
 }
@@ -117417,6 +118669,36 @@ module.exports = /*#__PURE__*/JSON.parse('{"application/1d-interleaved-parityfec
 /******/ 			() => (module);
 /******/ 		__nccwpck_require__.d(getter, { a: getter });
 /******/ 		return getter;
+/******/ 	};
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/create fake namespace object */
+/******/ (() => {
+/******/ 	var getProto = Object.getPrototypeOf ? (obj) => (Object.getPrototypeOf(obj)) : (obj) => (obj.__proto__);
+/******/ 	var leafPrototypes;
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 16: return value when it's Promise-like
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__nccwpck_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = this(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if(typeof value === 'object' && value) {
+/******/ 			if((mode & 4) && value.__esModule) return value;
+/******/ 			if((mode & 16) && typeof value.then === 'function') return value;
+/******/ 		}
+/******/ 		var ns = Object.create(null);
+/******/ 		__nccwpck_require__.r(ns);
+/******/ 		var def = {};
+/******/ 		leafPrototypes = leafPrototypes || [null, getProto({}), getProto([]), getProto(getProto)];
+/******/ 		for(var current = mode & 2 && value; typeof current == 'object' && !~leafPrototypes.indexOf(current); current = getProto(current)) {
+/******/ 			Object.getOwnPropertyNames(current).forEach((key) => (def[key] = () => (value[key])));
+/******/ 		}
+/******/ 		def['default'] = () => (value);
+/******/ 		__nccwpck_require__.d(ns, def);
+/******/ 		return ns;
 /******/ 	};
 /******/ })();
 /******/ 
