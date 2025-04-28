@@ -49,7 +49,7 @@ describe('test Jira API', () => {
     const version = await context.jira.getVersion();
 
     expect(version).toBeDefined();
-    expect(version).toMatchInlineSnapshot(`"9.12.18"`);
+    expect(version).toMatchInlineSnapshot(`"9.12.22"`);
 
     const issueId = rhel10IssueID;
     const issue = await context.jira.getIssueDetails(issueId);
@@ -137,7 +137,7 @@ describe('test Jira API', () => {
     };
     context.jira.issueDetails = issue;
 
-    const component = process.env['INPUT_COMPONENT'] ?? '';
+    const component = process.env['INPUT_COMPONENT'] ?? 'systemd';
     const isMatching = context.jira.isMatchingComponent(component);
 
     expect(isMatching).toBeTruthy();
