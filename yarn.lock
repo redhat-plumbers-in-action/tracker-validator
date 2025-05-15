@@ -1135,7 +1135,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.8.4":
+"axios@npm:^1.9.0":
   version: 1.9.0
   resolution: "axios@npm:1.9.0"
   dependencies:
@@ -1628,13 +1628,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"formdata-node@npm:^6.0.3":
-  version: 6.0.3
-  resolution: "formdata-node@npm:6.0.3"
-  checksum: 10c0/9b8ada280c7b0c7314bed57fd50b3562f8825bd3ede6f6231b1bc7683b649e7f3ffb7b0f13d8e9e6cae8042ea21eaf497a7c676d2fe6dc63daefefaea4838240
-  languageName: node
-  linkType: hard
-
 "formdata-polyfill@npm:^4.0.10":
   version: 4.0.10
   resolution: "formdata-polyfill@npm:4.0.10"
@@ -1902,15 +1895,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jira.js@npm:4.1.3":
-  version: 4.1.3
-  resolution: "jira.js@npm:4.1.3"
+"jira.js@npm:5.2.0":
+  version: 5.2.0
+  resolution: "jira.js@npm:5.2.0"
   dependencies:
-    axios: "npm:^1.8.4"
-    formdata-node: "npm:^6.0.3"
+    axios: "npm:^1.9.0"
     mime: "npm:^4.0.7"
-    tslib: "npm:^2.8.1"
-  checksum: 10c0/470909e1cdc8f919f23dd1238e8c540193ac92b1a59f9f6efab78495d6b878b1591103e5584dde86bc04bc24c4de2cca4d9b41e337268acf1e298d1c4aca5d0f
+    zod: "npm:^3.24.4"
+  checksum: 10c0/179fc1dddae56878ce51d99da89de01fae5fe602ea59dbf859149ad055df6cd9bfe3df60786e0d5693cc07061596028b24568a6bf421aed16edb8121f567de9f
   languageName: node
   linkType: hard
 
@@ -2657,7 +2649,7 @@ __metadata:
     bugzilla: "npm:3.1.4"
     deepmerge: "npm:^4.3.1"
     dotenv: "npm:16.5.0"
-    jira.js: "npm:4.1.3"
+    jira.js: "npm:5.2.0"
     node-fetch: "npm:3.3.2"
     prettier: "npm:3.5.3"
     ts-node: "npm:10.9.2"
@@ -2702,13 +2694,6 @@ __metadata:
     ts-node-transpile-only: dist/bin-transpile.js
     ts-script: dist/bin-script-deprecated.js
   checksum: 10c0/5f29938489f96982a25ba650b64218e83a3357d76f7bede80195c65ab44ad279c8357264639b7abdd5d7e75fc269a83daa0e9c62fd8637a3def67254ecc9ddc2
-  languageName: node
-  linkType: hard
-
-"tslib@npm:^2.8.1":
-  version: 2.8.1
-  resolution: "tslib@npm:2.8.1"
-  checksum: 10c0/9c4759110a19c53f992d9aae23aac5ced636e99887b51b9e61def52611732872ff7668757d4e4c61f19691e36f4da981cd9485e869b4a7408d689f6bf1f14e62
   languageName: node
   linkType: hard
 
@@ -3010,5 +2995,12 @@ __metadata:
   version: 3.24.3
   resolution: "zod@npm:3.24.3"
   checksum: 10c0/ab0369810968d0329a1a141e9418e01e5c9c2a4905cbb7cb7f5a131d6e9487596e1400e21eeff24c4a8ee28dacfa5bd6103893765c055b7a98c2006a5a4fc68d
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.24.4":
+  version: 3.24.4
+  resolution: "zod@npm:3.24.4"
+  checksum: 10c0/ab3112f017562180a41a0f83d870b333677f7d6b77f106696c56894567051b91154714a088149d8387a4f50806a2520efcb666f108cd384a35c236a191186d91
   languageName: node
   linkType: hard
