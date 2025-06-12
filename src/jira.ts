@@ -1,9 +1,9 @@
 import { debug } from '@actions/core';
 import { Version2Client } from 'jira.js';
+import { RemoteIssueLink } from 'jira.js/dist/esm/types/version2/models';
 
 import { Adapter, IssueDetails } from './controller';
 import { raise } from './util';
-import { RemoteIssueLink } from 'jira.js/out/version2/models';
 
 export class Jira implements Adapter<Version2Client> {
   readonly customFields = {
@@ -24,7 +24,9 @@ export class Jira implements Adapter<Version2Client> {
     this.api = new Version2Client({
       host: instance,
       authentication: {
-        personalAccessToken: apiToken,
+        oauth2: {
+          accessToken: apiToken,
+        },
       },
     });
   }
