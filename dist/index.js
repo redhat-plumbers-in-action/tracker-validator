@@ -72812,8 +72812,8 @@ async function action(octokit, prMetadata) {
         message.push(`🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} has been approved`);
     }
     const isSeveritySet = trackerController.adapter.isSeveritySet();
-    if (!isSeveritySet &&
-        ((_a = trackerController.adapter.issueDetails) === null || _a === void 0 ? void 0 : _a.type) === 'Story') {
+    const isStoryType = ((_a = trackerController.adapter.issueDetails) === null || _a === void 0 ? void 0 : _a.type) === 'Story';
+    if (!isSeveritySet && isStoryType) {
         message.push(`🟠 Tracker ${trackerController.adapter.getMarkdownUrl()} is missing severity, but it is of type Story`);
     }
     else if (!isSeveritySet) {
@@ -72826,7 +72826,9 @@ async function action(octokit, prMetadata) {
         }
         message.push(`🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} has set severity`);
     }
-    if (isMatchingProduct && isMatchingComponent && isSeveritySet) {
+    if (isMatchingProduct &&
+        isMatchingComponent &&
+        (isSeveritySet || isStoryType)) {
         (0,core.debug)(`Linking PR with tracker.`);
         const linkMessage = await trackerController.adapter.addLink('https://github.com/', `${github.context.repo.owner}/${github.context.repo.repo}/pull/${prMetadata.number}`);
         (0,core.notice)(`🔗 ${linkMessage}`);

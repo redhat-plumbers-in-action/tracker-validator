@@ -173,10 +173,8 @@ async function action(
   }
 
   const isSeveritySet = trackerController.adapter.isSeveritySet();
-  if (
-    !isSeveritySet &&
-    trackerController.adapter.issueDetails?.type === 'Story'
-  ) {
+  const isStoryType = trackerController.adapter.issueDetails?.type === 'Story';
+  if (!isSeveritySet && isStoryType) {
     message.push(
       `🟠 Tracker ${trackerController.adapter.getMarkdownUrl()} is missing severity, but it is of type Story`
     );
@@ -198,7 +196,11 @@ async function action(
     );
   }
 
-  if (isMatchingProduct && isMatchingComponent && isSeveritySet) {
+  if (
+    isMatchingProduct &&
+    isMatchingComponent &&
+    (isSeveritySet || isStoryType)
+  ) {
     debug(`Linking PR with tracker.`);
     const linkMessage = await trackerController.adapter.addLink(
       'https://github.com/',
