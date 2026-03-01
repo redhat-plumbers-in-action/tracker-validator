@@ -36,7 +36,7 @@
     "bugzilla": "3.1.4",
     "deepmerge": "^4.3.1",
     "dotenv": "17.2.1",
-    "jira.js": "5.2.2",
+    "jira.js": "5.3.1",
     "node-fetch": "3.3.2",
     "zod": "4.1.3"
   },
