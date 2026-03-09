@@ -28944,6 +28944,45 @@ var require_get_proto = __commonJS({
   }
 });
 
+// node_modules/async-function/index.js
+var require_async_function = __commonJS({
+  "node_modules/async-function/index.js"(exports, module) {
+    "use strict";
+    var cached2 = (
+      /** @type {import('.').AsyncFunctionConstructor} */
+      async function() {
+      }.constructor
+    );
+    module.exports = () => cached2;
+  }
+});
+
+// node_modules/generator-function/index.js
+var require_generator_function = __commonJS({
+  "node_modules/generator-function/index.js"(exports, module) {
+    "use strict";
+    var cached2 = (
+      /** @type {GeneratorFunctionConstructor} */
+      function* () {
+      }.constructor
+    );
+    module.exports = () => cached2;
+  }
+});
+
+// node_modules/async-generator-function/index.js
+var require_async_generator_function = __commonJS({
+  "node_modules/async-generator-function/index.js"(exports, module) {
+    "use strict";
+    var cached2 = (
+      /** @type {import('.').AsyncGeneratorFunctionConstructor} */
+      async function* () {
+      }.constructor
+    );
+    module.exports = () => cached2;
+  }
+});
+
 // node_modules/hasown/index.js
 var require_hasown = __commonJS({
   "node_modules/hasown/index.js"(exports, module) {
@@ -28975,13 +29014,6 @@ var require_get_intrinsic = __commonJS({
     var pow = require_pow();
     var round = require_round();
     var sign = require_sign();
-    var $Function = Function;
-    var getEvalledConstructor = function(expressionSyntax) {
-      try {
-        return $Function('"use strict"; return (' + expressionSyntax + ").constructor;")();
-      } catch (e2) {
-      }
-    };
     var $gOPD = require_gopd();
     var $defineProperty = require_es_define_property();
     var throwTypeError = function() {
@@ -29037,7 +29069,7 @@ var require_get_intrinsic = __commonJS({
       "%Float32Array%": typeof Float32Array === "undefined" ? undefined2 : Float32Array,
       "%Float64Array%": typeof Float64Array === "undefined" ? undefined2 : Float64Array,
       "%FinalizationRegistry%": typeof FinalizationRegistry === "undefined" ? undefined2 : FinalizationRegistry,
-      "%Function%": $Function,
+      "%Function%": Function,
       "%GeneratorFunction%": needsEval,
       "%Int8Array%": typeof Int8Array === "undefined" ? undefined2 : Int8Array,
       "%Int16Array%": typeof Int16Array === "undefined" ? undefined2 : Int16Array,
@@ -29100,14 +29132,17 @@ var require_get_intrinsic = __commonJS({
       }
     }
     var errorProto;
+    var getAsyncFunction = require_async_function();
+    var getGeneratorFunction = require_generator_function();
+    var getAsyncGeneratorFunction = require_async_generator_function();
     var doEval = function doEval2(name) {
       var value;
       if (name === "%AsyncFunction%") {
-        value = getEvalledConstructor("async function () {}");
+        value = getAsyncFunction() || void undefined2;
       } else if (name === "%GeneratorFunction%") {
-        value = getEvalledConstructor("function* () {}");
+        value = getGeneratorFunction() || void undefined2;
       } else if (name === "%AsyncGeneratorFunction%") {
-        value = getEvalledConstructor("async function* () {}");
+        value = getAsyncGeneratorFunction() || void undefined2;
       } else if (name === "%AsyncGenerator%") {
         var fn = doEval2("%AsyncGeneratorFunction%");
         if (fn) {
@@ -29354,6 +29389,7 @@ var require_form_data = __commonJS({
     var parseUrl2 = __require("url").parse;
     var fs4 = __require("fs");
     var Stream3 = __require("stream").Stream;
+    var crypto4 = __require("crypto");
     var mime = require_mime_types();
     var asynckit = require_asynckit();
     var setToStringTag = require_es_set_tostringtag();
@@ -29559,11 +29595,7 @@ var require_form_data = __commonJS({
       return Buffer.concat([dataBuffer, Buffer.from(this._lastBoundary())]);
     };
     FormData6.prototype._generateBoundary = function() {
-      var boundary = "--------------------------";
-      for (var i2 = 0; i2 < 24; i2++) {
-        boundary += Math.floor(Math.random() * 10).toString(16);
-      }
-      this._boundary = boundary;
+      this._boundary = "--------------------------" + crypto4.randomBytes(12).toString("hex");
     };
     FormData6.prototype.getLengthSync = function() {
       var knownLength = this._overheadLength + this._valueLength;
@@ -29659,7 +29691,7 @@ var require_form_data = __commonJS({
     FormData6.prototype.toString = function() {
       return "[object FormData]";
     };
-    setToStringTag(FormData6, "FormData");
+    setToStringTag(FormData6.prototype, "FormData");
     module.exports = FormData6;
   }
 });
@@ -36168,854 +36200,6 @@ var require_cjs = __commonJS({
     };
     var deepmerge_1 = deepmerge2;
     module.exports = deepmerge_1;
-  }
-});
-
-// node_modules/jira.js/node_modules/form-data/lib/populate.js
-var require_populate2 = __commonJS({
-  "node_modules/jira.js/node_modules/form-data/lib/populate.js"(exports, module) {
-    "use strict";
-    module.exports = function(dst, src) {
-      Object.keys(src).forEach(function(prop) {
-        dst[prop] = dst[prop] || src[prop];
-      });
-      return dst;
-    };
-  }
-});
-
-// node_modules/jira.js/node_modules/form-data/lib/form_data.js
-var require_form_data2 = __commonJS({
-  "node_modules/jira.js/node_modules/form-data/lib/form_data.js"(exports, module) {
-    "use strict";
-    var CombinedStream = require_combined_stream();
-    var util5 = __require("util");
-    var path = __require("path");
-    var http5 = __require("http");
-    var https4 = __require("https");
-    var parseUrl2 = __require("url").parse;
-    var fs4 = __require("fs");
-    var Stream3 = __require("stream").Stream;
-    var crypto4 = __require("crypto");
-    var mime = require_mime_types();
-    var asynckit = require_asynckit();
-    var setToStringTag = require_es_set_tostringtag();
-    var hasOwn = require_hasown();
-    var populate = require_populate2();
-    function FormData6(options) {
-      if (!(this instanceof FormData6)) {
-        return new FormData6(options);
-      }
-      this._overheadLength = 0;
-      this._valueLength = 0;
-      this._valuesToMeasure = [];
-      CombinedStream.call(this);
-      options = options || {};
-      for (var option in options) {
-        this[option] = options[option];
-      }
-    }
-    util5.inherits(FormData6, CombinedStream);
-    FormData6.LINE_BREAK = "\r\n";
-    FormData6.DEFAULT_CONTENT_TYPE = "application/octet-stream";
-    FormData6.prototype.append = function(field, value, options) {
-      options = options || {};
-      if (typeof options === "string") {
-        options = { filename: options };
-      }
-      var append3 = CombinedStream.prototype.append.bind(this);
-      if (typeof value === "number" || value == null) {
-        value = String(value);
-      }
-      if (Array.isArray(value)) {
-        this._error(new Error("Arrays are not supported."));
-        return;
-      }
-      var header = this._multiPartHeader(field, value, options);
-      var footer = this._multiPartFooter();
-      append3(header);
-      append3(value);
-      append3(footer);
-      this._trackLength(header, value, options);
-    };
-    FormData6.prototype._trackLength = function(header, value, options) {
-      var valueLength = 0;
-      if (options.knownLength != null) {
-        valueLength += Number(options.knownLength);
-      } else if (Buffer.isBuffer(value)) {
-        valueLength = value.length;
-      } else if (typeof value === "string") {
-        valueLength = Buffer.byteLength(value);
-      }
-      this._valueLength += valueLength;
-      this._overheadLength += Buffer.byteLength(header) + FormData6.LINE_BREAK.length;
-      if (!value || !value.path && !(value.readable && hasOwn(value, "httpVersion")) && !(value instanceof Stream3)) {
-        return;
-      }
-      if (!options.knownLength) {
-        this._valuesToMeasure.push(value);
-      }
-    };
-    FormData6.prototype._lengthRetriever = function(value, callback) {
-      if (hasOwn(value, "fd")) {
-        if (value.end != void 0 && value.end != Infinity && value.start != void 0) {
-          callback(null, value.end + 1 - (value.start ? value.start : 0));
-        } else {
-          fs4.stat(value.path, function(err, stat3) {
-            if (err) {
-              callback(err);
-              return;
-            }
-            var fileSize = stat3.size - (value.start ? value.start : 0);
-            callback(null, fileSize);
-          });
-        }
-      } else if (hasOwn(value, "httpVersion")) {
-        callback(null, Number(value.headers["content-length"]));
-      } else if (hasOwn(value, "httpModule")) {
-        value.on("response", function(response) {
-          value.pause();
-          callback(null, Number(response.headers["content-length"]));
-        });
-        value.resume();
-      } else {
-        callback("Unknown stream");
-      }
-    };
-    FormData6.prototype._multiPartHeader = function(field, value, options) {
-      if (typeof options.header === "string") {
-        return options.header;
-      }
-      var contentDisposition = this._getContentDisposition(value, options);
-      var contentType = this._getContentType(value, options);
-      var contents = "";
-      var headers = {
-        // add custom disposition as third element or keep it two elements if not
-        "Content-Disposition": ["form-data", 'name="' + field + '"'].concat(contentDisposition || []),
-        // if no content type. allow it to be empty array
-        "Content-Type": [].concat(contentType || [])
-      };
-      if (typeof options.header === "object") {
-        populate(headers, options.header);
-      }
-      var header;
-      for (var prop in headers) {
-        if (hasOwn(headers, prop)) {
-          header = headers[prop];
-          if (header == null) {
-            continue;
-          }
-          if (!Array.isArray(header)) {
-            header = [header];
-          }
-          if (header.length) {
-            contents += prop + ": " + header.join("; ") + FormData6.LINE_BREAK;
-          }
-        }
-      }
-      return "--" + this.getBoundary() + FormData6.LINE_BREAK + contents + FormData6.LINE_BREAK;
-    };
-    FormData6.prototype._getContentDisposition = function(value, options) {
-      var filename;
-      if (typeof options.filepath === "string") {
-        filename = path.normalize(options.filepath).replace(/\\/g, "/");
-      } else if (options.filename || value && (value.name || value.path)) {
-        filename = path.basename(options.filename || value && (value.name || value.path));
-      } else if (value && value.readable && hasOwn(value, "httpVersion")) {
-        filename = path.basename(value.client._httpMessage.path || "");
-      }
-      if (filename) {
-        return 'filename="' + filename + '"';
-      }
-    };
-    FormData6.prototype._getContentType = function(value, options) {
-      var contentType = options.contentType;
-      if (!contentType && value && value.name) {
-        contentType = mime.lookup(value.name);
-      }
-      if (!contentType && value && value.path) {
-        contentType = mime.lookup(value.path);
-      }
-      if (!contentType && value && value.readable && hasOwn(value, "httpVersion")) {
-        contentType = value.headers["content-type"];
-      }
-      if (!contentType && (options.filepath || options.filename)) {
-        contentType = mime.lookup(options.filepath || options.filename);
-      }
-      if (!contentType && value && typeof value === "object") {
-        contentType = FormData6.DEFAULT_CONTENT_TYPE;
-      }
-      return contentType;
-    };
-    FormData6.prototype._multiPartFooter = function() {
-      return function(next) {
-        var footer = FormData6.LINE_BREAK;
-        var lastPart = this._streams.length === 0;
-        if (lastPart) {
-          footer += this._lastBoundary();
-        }
-        next(footer);
-      }.bind(this);
-    };
-    FormData6.prototype._lastBoundary = function() {
-      return "--" + this.getBoundary() + "--" + FormData6.LINE_BREAK;
-    };
-    FormData6.prototype.getHeaders = function(userHeaders) {
-      var header;
-      var formHeaders = {
-        "content-type": "multipart/form-data; boundary=" + this.getBoundary()
-      };
-      for (header in userHeaders) {
-        if (hasOwn(userHeaders, header)) {
-          formHeaders[header.toLowerCase()] = userHeaders[header];
-        }
-      }
-      return formHeaders;
-    };
-    FormData6.prototype.setBoundary = function(boundary) {
-      if (typeof boundary !== "string") {
-        throw new TypeError("FormData boundary must be a string");
-      }
-      this._boundary = boundary;
-    };
-    FormData6.prototype.getBoundary = function() {
-      if (!this._boundary) {
-        this._generateBoundary();
-      }
-      return this._boundary;
-    };
-    FormData6.prototype.getBuffer = function() {
-      var dataBuffer = new Buffer.alloc(0);
-      var boundary = this.getBoundary();
-      for (var i2 = 0, len = this._streams.length; i2 < len; i2++) {
-        if (typeof this._streams[i2] !== "function") {
-          if (Buffer.isBuffer(this._streams[i2])) {
-            dataBuffer = Buffer.concat([dataBuffer, this._streams[i2]]);
-          } else {
-            dataBuffer = Buffer.concat([dataBuffer, Buffer.from(this._streams[i2])]);
-          }
-          if (typeof this._streams[i2] !== "string" || this._streams[i2].substring(2, boundary.length + 2) !== boundary) {
-            dataBuffer = Buffer.concat([dataBuffer, Buffer.from(FormData6.LINE_BREAK)]);
-          }
-        }
-      }
-      return Buffer.concat([dataBuffer, Buffer.from(this._lastBoundary())]);
-    };
-    FormData6.prototype._generateBoundary = function() {
-      this._boundary = "--------------------------" + crypto4.randomBytes(12).toString("hex");
-    };
-    FormData6.prototype.getLengthSync = function() {
-      var knownLength = this._overheadLength + this._valueLength;
-      if (this._streams.length) {
-        knownLength += this._lastBoundary().length;
-      }
-      if (!this.hasKnownLength()) {
-        this._error(new Error("Cannot calculate proper length in synchronous way."));
-      }
-      return knownLength;
-    };
-    FormData6.prototype.hasKnownLength = function() {
-      var hasKnownLength = true;
-      if (this._valuesToMeasure.length) {
-        hasKnownLength = false;
-      }
-      return hasKnownLength;
-    };
-    FormData6.prototype.getLength = function(cb) {
-      var knownLength = this._overheadLength + this._valueLength;
-      if (this._streams.length) {
-        knownLength += this._lastBoundary().length;
-      }
-      if (!this._valuesToMeasure.length) {
-        process.nextTick(cb.bind(this, null, knownLength));
-        return;
-      }
-      asynckit.parallel(this._valuesToMeasure, this._lengthRetriever, function(err, values) {
-        if (err) {
-          cb(err);
-          return;
-        }
-        values.forEach(function(length) {
-          knownLength += length;
-        });
-        cb(null, knownLength);
-      });
-    };
-    FormData6.prototype.submit = function(params2, cb) {
-      var request2;
-      var options;
-      var defaults4 = { method: "post" };
-      if (typeof params2 === "string") {
-        params2 = parseUrl2(params2);
-        options = populate({
-          port: params2.port,
-          path: params2.pathname,
-          host: params2.hostname,
-          protocol: params2.protocol
-        }, defaults4);
-      } else {
-        options = populate(params2, defaults4);
-        if (!options.port) {
-          options.port = options.protocol === "https:" ? 443 : 80;
-        }
-      }
-      options.headers = this.getHeaders(params2.headers);
-      if (options.protocol === "https:") {
-        request2 = https4.request(options);
-      } else {
-        request2 = http5.request(options);
-      }
-      this.getLength(function(err, length) {
-        if (err && err !== "Unknown stream") {
-          this._error(err);
-          return;
-        }
-        if (length) {
-          request2.setHeader("Content-Length", length);
-        }
-        this.pipe(request2);
-        if (cb) {
-          var onResponse;
-          var callback = function(error49, responce) {
-            request2.removeListener("error", callback);
-            request2.removeListener("response", onResponse);
-            return cb.call(this, error49, responce);
-          };
-          onResponse = callback.bind(this, null);
-          request2.on("error", callback);
-          request2.on("response", onResponse);
-        }
-      }.bind(this));
-      return request2;
-    };
-    FormData6.prototype._error = function(err) {
-      if (!this.error) {
-        this.error = err;
-        this.pause();
-        this.emit("error", err);
-      }
-    };
-    FormData6.prototype.toString = function() {
-      return "[object FormData]";
-    };
-    setToStringTag(FormData6.prototype, "FormData");
-    module.exports = FormData6;
-  }
-});
-
-// node_modules/jira.js/node_modules/follow-redirects/debug.js
-var require_debug2 = __commonJS({
-  "node_modules/jira.js/node_modules/follow-redirects/debug.js"(exports, module) {
-    var debug2;
-    module.exports = function() {
-      if (!debug2) {
-        try {
-          debug2 = require_src()("follow-redirects");
-        } catch (error49) {
-        }
-        if (typeof debug2 !== "function") {
-          debug2 = function() {
-          };
-        }
-      }
-      debug2.apply(null, arguments);
-    };
-  }
-});
-
-// node_modules/jira.js/node_modules/follow-redirects/index.js
-var require_follow_redirects2 = __commonJS({
-  "node_modules/jira.js/node_modules/follow-redirects/index.js"(exports, module) {
-    var url4 = __require("url");
-    var URL4 = url4.URL;
-    var http5 = __require("http");
-    var https4 = __require("https");
-    var Writable = __require("stream").Writable;
-    var assert2 = __require("assert");
-    var debug2 = require_debug2();
-    (function detectUnsupportedEnvironment() {
-      var looksLikeNode = typeof process !== "undefined";
-      var looksLikeBrowser = typeof window !== "undefined" && typeof document !== "undefined";
-      var looksLikeV8 = isFunction4(Error.captureStackTrace);
-      if (!looksLikeNode && (looksLikeBrowser || !looksLikeV8)) {
-        console.warn("The follow-redirects package should be excluded from browser builds.");
-      }
-    })();
-    var useNativeURL = false;
-    try {
-      assert2(new URL4(""));
-    } catch (error49) {
-      useNativeURL = error49.code === "ERR_INVALID_URL";
-    }
-    var preservedUrlFields = [
-      "auth",
-      "host",
-      "hostname",
-      "href",
-      "path",
-      "pathname",
-      "port",
-      "protocol",
-      "query",
-      "search",
-      "hash"
-    ];
-    var events = ["abort", "aborted", "connect", "error", "socket", "timeout"];
-    var eventHandlers = /* @__PURE__ */ Object.create(null);
-    events.forEach(function(event) {
-      eventHandlers[event] = function(arg1, arg2, arg3) {
-        this._redirectable.emit(event, arg1, arg2, arg3);
-      };
-    });
-    var InvalidUrlError = createErrorType(
-      "ERR_INVALID_URL",
-      "Invalid URL",
-      TypeError
-    );
-    var RedirectionError = createErrorType(
-      "ERR_FR_REDIRECTION_FAILURE",
-      "Redirected request failed"
-    );
-    var TooManyRedirectsError = createErrorType(
-      "ERR_FR_TOO_MANY_REDIRECTS",
-      "Maximum number of redirects exceeded",
-      RedirectionError
-    );
-    var MaxBodyLengthExceededError = createErrorType(
-      "ERR_FR_MAX_BODY_LENGTH_EXCEEDED",
-      "Request body larger than maxBodyLength limit"
-    );
-    var WriteAfterEndError = createErrorType(
-      "ERR_STREAM_WRITE_AFTER_END",
-      "write after end"
-    );
-    var destroy = Writable.prototype.destroy || noop7;
-    function RedirectableRequest(options, responseCallback) {
-      Writable.call(this);
-      this._sanitizeOptions(options);
-      this._options = options;
-      this._ended = false;
-      this._ending = false;
-      this._redirectCount = 0;
-      this._redirects = [];
-      this._requestBodyLength = 0;
-      this._requestBodyBuffers = [];
-      if (responseCallback) {
-        this.on("response", responseCallback);
-      }
-      var self2 = this;
-      this._onNativeResponse = function(response) {
-        try {
-          self2._processResponse(response);
-        } catch (cause) {
-          self2.emit("error", cause instanceof RedirectionError ? cause : new RedirectionError({ cause }));
-        }
-      };
-      this._performRequest();
-    }
-    RedirectableRequest.prototype = Object.create(Writable.prototype);
-    RedirectableRequest.prototype.abort = function() {
-      destroyRequest(this._currentRequest);
-      this._currentRequest.abort();
-      this.emit("abort");
-    };
-    RedirectableRequest.prototype.destroy = function(error49) {
-      destroyRequest(this._currentRequest, error49);
-      destroy.call(this, error49);
-      return this;
-    };
-    RedirectableRequest.prototype.write = function(data, encoding, callback) {
-      if (this._ending) {
-        throw new WriteAfterEndError();
-      }
-      if (!isString5(data) && !isBuffer3(data)) {
-        throw new TypeError("data should be a string, Buffer or Uint8Array");
-      }
-      if (isFunction4(encoding)) {
-        callback = encoding;
-        encoding = null;
-      }
-      if (data.length === 0) {
-        if (callback) {
-          callback();
-        }
-        return;
-      }
-      if (this._requestBodyLength + data.length <= this._options.maxBodyLength) {
-        this._requestBodyLength += data.length;
-        this._requestBodyBuffers.push({ data, encoding });
-        this._currentRequest.write(data, encoding, callback);
-      } else {
-        this.emit("error", new MaxBodyLengthExceededError());
-        this.abort();
-      }
-    };
-    RedirectableRequest.prototype.end = function(data, encoding, callback) {
-      if (isFunction4(data)) {
-        callback = data;
-        data = encoding = null;
-      } else if (isFunction4(encoding)) {
-        callback = encoding;
-        encoding = null;
-      }
-      if (!data) {
-        this._ended = this._ending = true;
-        this._currentRequest.end(null, null, callback);
-      } else {
-        var self2 = this;
-        var currentRequest = this._currentRequest;
-        this.write(data, encoding, function() {
-          self2._ended = true;
-          currentRequest.end(null, null, callback);
-        });
-        this._ending = true;
-      }
-    };
-    RedirectableRequest.prototype.setHeader = function(name, value) {
-      this._options.headers[name] = value;
-      this._currentRequest.setHeader(name, value);
-    };
-    RedirectableRequest.prototype.removeHeader = function(name) {
-      delete this._options.headers[name];
-      this._currentRequest.removeHeader(name);
-    };
-    RedirectableRequest.prototype.setTimeout = function(msecs, callback) {
-      var self2 = this;
-      function destroyOnTimeout(socket) {
-        socket.setTimeout(msecs);
-        socket.removeListener("timeout", socket.destroy);
-        socket.addListener("timeout", socket.destroy);
-      }
-      function startTimer(socket) {
-        if (self2._timeout) {
-          clearTimeout(self2._timeout);
-        }
-        self2._timeout = setTimeout(function() {
-          self2.emit("timeout");
-          clearTimer();
-        }, msecs);
-        destroyOnTimeout(socket);
-      }
-      function clearTimer() {
-        if (self2._timeout) {
-          clearTimeout(self2._timeout);
-          self2._timeout = null;
-        }
-        self2.removeListener("abort", clearTimer);
-        self2.removeListener("error", clearTimer);
-        self2.removeListener("response", clearTimer);
-        self2.removeListener("close", clearTimer);
-        if (callback) {
-          self2.removeListener("timeout", callback);
-        }
-        if (!self2.socket) {
-          self2._currentRequest.removeListener("socket", startTimer);
-        }
-      }
-      if (callback) {
-        this.on("timeout", callback);
-      }
-      if (this.socket) {
-        startTimer(this.socket);
-      } else {
-        this._currentRequest.once("socket", startTimer);
-      }
-      this.on("socket", destroyOnTimeout);
-      this.on("abort", clearTimer);
-      this.on("error", clearTimer);
-      this.on("response", clearTimer);
-      this.on("close", clearTimer);
-      return this;
-    };
-    [
-      "flushHeaders",
-      "getHeader",
-      "setNoDelay",
-      "setSocketKeepAlive"
-    ].forEach(function(method) {
-      RedirectableRequest.prototype[method] = function(a, b) {
-        return this._currentRequest[method](a, b);
-      };
-    });
-    ["aborted", "connection", "socket"].forEach(function(property) {
-      Object.defineProperty(RedirectableRequest.prototype, property, {
-        get: function() {
-          return this._currentRequest[property];
-        }
-      });
-    });
-    RedirectableRequest.prototype._sanitizeOptions = function(options) {
-      if (!options.headers) {
-        options.headers = {};
-      }
-      if (options.host) {
-        if (!options.hostname) {
-          options.hostname = options.host;
-        }
-        delete options.host;
-      }
-      if (!options.pathname && options.path) {
-        var searchPos = options.path.indexOf("?");
-        if (searchPos < 0) {
-          options.pathname = options.path;
-        } else {
-          options.pathname = options.path.substring(0, searchPos);
-          options.search = options.path.substring(searchPos);
-        }
-      }
-    };
-    RedirectableRequest.prototype._performRequest = function() {
-      var protocol = this._options.protocol;
-      var nativeProtocol = this._options.nativeProtocols[protocol];
-      if (!nativeProtocol) {
-        throw new TypeError("Unsupported protocol " + protocol);
-      }
-      if (this._options.agents) {
-        var scheme = protocol.slice(0, -1);
-        this._options.agent = this._options.agents[scheme];
-      }
-      var request2 = this._currentRequest = nativeProtocol.request(this._options, this._onNativeResponse);
-      request2._redirectable = this;
-      for (var event of events) {
-        request2.on(event, eventHandlers[event]);
-      }
-      this._currentUrl = /^\//.test(this._options.path) ? url4.format(this._options) : (
-        // When making a request to a proxy, […]
-        // a client MUST send the target URI in absolute-form […].
-        this._options.path
-      );
-      if (this._isRedirect) {
-        var i2 = 0;
-        var self2 = this;
-        var buffers = this._requestBodyBuffers;
-        (function writeNext(error49) {
-          if (request2 === self2._currentRequest) {
-            if (error49) {
-              self2.emit("error", error49);
-            } else if (i2 < buffers.length) {
-              var buffer = buffers[i2++];
-              if (!request2.finished) {
-                request2.write(buffer.data, buffer.encoding, writeNext);
-              }
-            } else if (self2._ended) {
-              request2.end();
-            }
-          }
-        })();
-      }
-    };
-    RedirectableRequest.prototype._processResponse = function(response) {
-      var statusCode = response.statusCode;
-      if (this._options.trackRedirects) {
-        this._redirects.push({
-          url: this._currentUrl,
-          headers: response.headers,
-          statusCode
-        });
-      }
-      var location = response.headers.location;
-      if (!location || this._options.followRedirects === false || statusCode < 300 || statusCode >= 400) {
-        response.responseUrl = this._currentUrl;
-        response.redirects = this._redirects;
-        this.emit("response", response);
-        this._requestBodyBuffers = [];
-        return;
-      }
-      destroyRequest(this._currentRequest);
-      response.destroy();
-      if (++this._redirectCount > this._options.maxRedirects) {
-        throw new TooManyRedirectsError();
-      }
-      var requestHeaders;
-      var beforeRedirect = this._options.beforeRedirect;
-      if (beforeRedirect) {
-        requestHeaders = Object.assign({
-          // The Host header was set by nativeProtocol.request
-          Host: response.req.getHeader("host")
-        }, this._options.headers);
-      }
-      var method = this._options.method;
-      if ((statusCode === 301 || statusCode === 302) && this._options.method === "POST" || // RFC7231§6.4.4: The 303 (See Other) status code indicates that
-      // the server is redirecting the user agent to a different resource […]
-      // A user agent can perform a retrieval request targeting that URI
-      // (a GET or HEAD request if using HTTP) […]
-      statusCode === 303 && !/^(?:GET|HEAD)$/.test(this._options.method)) {
-        this._options.method = "GET";
-        this._requestBodyBuffers = [];
-        removeMatchingHeaders(/^content-/i, this._options.headers);
-      }
-      var currentHostHeader = removeMatchingHeaders(/^host$/i, this._options.headers);
-      var currentUrlParts = parseUrl2(this._currentUrl);
-      var currentHost = currentHostHeader || currentUrlParts.host;
-      var currentUrl = /^\w+:/.test(location) ? this._currentUrl : url4.format(Object.assign(currentUrlParts, { host: currentHost }));
-      var redirectUrl = resolveUrl(location, currentUrl);
-      debug2("redirecting to", redirectUrl.href);
-      this._isRedirect = true;
-      spreadUrlObject(redirectUrl, this._options);
-      if (redirectUrl.protocol !== currentUrlParts.protocol && redirectUrl.protocol !== "https:" || redirectUrl.host !== currentHost && !isSubdomain(redirectUrl.host, currentHost)) {
-        removeMatchingHeaders(/^(?:(?:proxy-)?authorization|cookie)$/i, this._options.headers);
-      }
-      if (isFunction4(beforeRedirect)) {
-        var responseDetails = {
-          headers: response.headers,
-          statusCode
-        };
-        var requestDetails = {
-          url: currentUrl,
-          method,
-          headers: requestHeaders
-        };
-        beforeRedirect(this._options, responseDetails, requestDetails);
-        this._sanitizeOptions(this._options);
-      }
-      this._performRequest();
-    };
-    function wrap(protocols) {
-      var exports2 = {
-        maxRedirects: 21,
-        maxBodyLength: 10 * 1024 * 1024
-      };
-      var nativeProtocols = {};
-      Object.keys(protocols).forEach(function(scheme) {
-        var protocol = scheme + ":";
-        var nativeProtocol = nativeProtocols[protocol] = protocols[scheme];
-        var wrappedProtocol = exports2[scheme] = Object.create(nativeProtocol);
-        function request2(input, options, callback) {
-          if (isURL(input)) {
-            input = spreadUrlObject(input);
-          } else if (isString5(input)) {
-            input = spreadUrlObject(parseUrl2(input));
-          } else {
-            callback = options;
-            options = validateUrl(input);
-            input = { protocol };
-          }
-          if (isFunction4(options)) {
-            callback = options;
-            options = null;
-          }
-          options = Object.assign({
-            maxRedirects: exports2.maxRedirects,
-            maxBodyLength: exports2.maxBodyLength
-          }, input, options);
-          options.nativeProtocols = nativeProtocols;
-          if (!isString5(options.host) && !isString5(options.hostname)) {
-            options.hostname = "::1";
-          }
-          assert2.equal(options.protocol, protocol, "protocol mismatch");
-          debug2("options", options);
-          return new RedirectableRequest(options, callback);
-        }
-        function get(input, options, callback) {
-          var wrappedRequest = wrappedProtocol.request(input, options, callback);
-          wrappedRequest.end();
-          return wrappedRequest;
-        }
-        Object.defineProperties(wrappedProtocol, {
-          request: { value: request2, configurable: true, enumerable: true, writable: true },
-          get: { value: get, configurable: true, enumerable: true, writable: true }
-        });
-      });
-      return exports2;
-    }
-    function noop7() {
-    }
-    function parseUrl2(input) {
-      var parsed;
-      if (useNativeURL) {
-        parsed = new URL4(input);
-      } else {
-        parsed = validateUrl(url4.parse(input));
-        if (!isString5(parsed.protocol)) {
-          throw new InvalidUrlError({ input });
-        }
-      }
-      return parsed;
-    }
-    function resolveUrl(relative, base) {
-      return useNativeURL ? new URL4(relative, base) : parseUrl2(url4.resolve(base, relative));
-    }
-    function validateUrl(input) {
-      if (/^\[/.test(input.hostname) && !/^\[[:0-9a-f]+\]$/i.test(input.hostname)) {
-        throw new InvalidUrlError({ input: input.href || input });
-      }
-      if (/^\[/.test(input.host) && !/^\[[:0-9a-f]+\](:\d+)?$/i.test(input.host)) {
-        throw new InvalidUrlError({ input: input.href || input });
-      }
-      return input;
-    }
-    function spreadUrlObject(urlObject, target) {
-      var spread5 = target || {};
-      for (var key of preservedUrlFields) {
-        spread5[key] = urlObject[key];
-      }
-      if (spread5.hostname.startsWith("[")) {
-        spread5.hostname = spread5.hostname.slice(1, -1);
-      }
-      if (spread5.port !== "") {
-        spread5.port = Number(spread5.port);
-      }
-      spread5.path = spread5.search ? spread5.pathname + spread5.search : spread5.pathname;
-      return spread5;
-    }
-    function removeMatchingHeaders(regex2, headers) {
-      var lastValue;
-      for (var header in headers) {
-        if (regex2.test(header)) {
-          lastValue = headers[header];
-          delete headers[header];
-        }
-      }
-      return lastValue === null || typeof lastValue === "undefined" ? void 0 : String(lastValue).trim();
-    }
-    function createErrorType(code, message, baseClass) {
-      function CustomError(properties) {
-        if (isFunction4(Error.captureStackTrace)) {
-          Error.captureStackTrace(this, this.constructor);
-        }
-        Object.assign(this, properties || {});
-        this.code = code;
-        this.message = this.cause ? message + ": " + this.cause.message : message;
-      }
-      CustomError.prototype = new (baseClass || Error)();
-      Object.defineProperties(CustomError.prototype, {
-        constructor: {
-          value: CustomError,
-          enumerable: false
-        },
-        name: {
-          value: "Error [" + code + "]",
-          enumerable: false
-        }
-      });
-      return CustomError;
-    }
-    function destroyRequest(request2, error49) {
-      for (var event of events) {
-        request2.removeListener(event, eventHandlers[event]);
-      }
-      request2.on("error", noop7);
-      request2.destroy(error49);
-    }
-    function isSubdomain(subdomain, domain2) {
-      assert2(isString5(subdomain) && isString5(domain2));
-      var dot = subdomain.length - domain2.length - 1;
-      return dot > 0 && subdomain[dot] === "." && subdomain.endsWith(domain2);
-    }
-    function isString5(value) {
-      return typeof value === "string" || value instanceof String;
-    }
-    function isFunction4(value) {
-      return typeof value === "function";
-    }
-    function isBuffer3(value) {
-      return typeof value === "object" && "length" in value;
-    }
-    function isURL(value) {
-      return URL4 && value instanceof URL4;
-    }
-    module.exports = wrap({ http: http5, https: https4 });
-    module.exports.wrap = wrap;
   }
 });
 
@@ -76064,7 +75248,7 @@ AxiosError3.ERR_INVALID_URL = "ERR_INVALID_URL";
 var AxiosError_default2 = AxiosError3;
 
 // node_modules/jira.js/node_modules/axios/lib/platform/node/classes/FormData.js
-var import_form_data2 = __toESM(require_form_data2(), 1);
+var import_form_data2 = __toESM(require_form_data(), 1);
 var FormData_default2 = import_form_data2.default;
 
 // node_modules/jira.js/node_modules/axios/lib/helpers/toFormData.js
@@ -76921,7 +76105,7 @@ function buildFullPath2(baseURL, requestedURL, allowAbsoluteUrls) {
 
 // node_modules/jira.js/node_modules/axios/lib/adapters/http.js
 var import_proxy_from_env2 = __toESM(require_proxy_from_env(), 1);
-var import_follow_redirects2 = __toESM(require_follow_redirects2(), 1);
+var import_follow_redirects2 = __toESM(require_follow_redirects(), 1);
 import http4 from "http";
 import https3 from "https";
 import http22 from "http2";
