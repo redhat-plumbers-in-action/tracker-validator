@@ -41,9 +41,12 @@ async function action(
 
     case 'jira':
       const jiraInstance = getInput('jira-instance', { required: true });
+      const jiraEmail = getInput('jira-email', { required: true });
       const jiraAPIToken = getInput('jira-api-token', { required: true });
 
-      trackerController = new Controller(new Jira(jiraInstance, jiraAPIToken));
+      trackerController = new Controller(
+        new Jira(jiraInstance, jiraEmail, jiraAPIToken)
+      );
       debug(
         `Using Jira '${jiraInstance}', version: '${await trackerController.adapter.getVersion()}'`
       );

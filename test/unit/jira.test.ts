@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { Jira } from '../../src/jira';
-import { Version2Client } from 'jira.js';
+import { Version3Client } from 'jira.js';
 import { IssueDetails, Flag } from '../../src/controller';
 
 interface TestContext {
@@ -13,15 +13,17 @@ const rhel10IssueID = 'RHEL-678';
 describe('test Jira API', () => {
   beforeEach<TestContext>(context => {
     const jiraToken = process.env['INPUT_JIRA-API-TOKEN'] ?? '';
+    const jiraEmail =
+      process.env['INPUT_JIRA-EMAIL'] ?? 'systemd-maint@redhat.com';
     const jiraInstance =
-      process.env['INPUT_JIRA-INSTANCE'] ?? 'https://issues.redhat.com';
+      process.env['INPUT_JIRA-INSTANCE'] ?? 'https://redhat.atlassian.net';
 
-    context.jira = new Jira(jiraInstance, jiraToken);
+    context.jira = new Jira(jiraInstance, jiraEmail, jiraToken);
   });
 
   test<TestContext>('public properties', context => {
-    expect(context.jira.api).toBeInstanceOf(Version2Client);
-    expect(context.jira.instance).toEqual('https://issues.redhat.com');
+    expect(context.jira.api).toBeInstanceOf(Version3Client);
+    expect(context.jira.instance).toEqual('https://redhat.atlassian.net');
   });
 
   test<TestContext>('getIssueDetails()', async context => {
@@ -49,7 +51,6 @@ describe('test Jira API', () => {
     const version = await context.jira.getVersion();
 
     expect(version).toBeDefined();
-    expect(version).toMatchInlineSnapshot(`"9.12.32"`);
 
     const issueId = rhel10IssueID;
     const issue = await context.jira.getIssueDetails(issueId);
@@ -84,7 +85,7 @@ describe('test Jira API', () => {
     };
 
     expect(context.jira.getUrl()).toEqual(
-      'https://issues.redhat.com/browse/123456789'
+      'https://redhat.atlassian.net/browse/123456789'
     );
   });
 
@@ -101,7 +102,7 @@ describe('test Jira API', () => {
     };
 
     expect(context.jira.getMarkdownUrl()).toEqual(
-      '[123456789](https://issues.redhat.com/browse/123456789)'
+      '[123456789](https://redhat.atlassian.net/browse/123456789)'
     );
   });
 

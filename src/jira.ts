@@ -1,16 +1,16 @@
 import { debug } from '@actions/core';
-import { Version2Client } from 'jira.js';
-import { RemoteIssueLink } from 'jira.js/dist/esm/types/version2/models';
+import { Version3Client } from 'jira.js';
+import { RemoteIssueLink } from 'jira.js/dist/esm/types/version3/models';
 
 import { Adapter, IssueDetails } from './controller';
 import { raise } from './util';
 
-export class Jira implements Adapter<Version2Client> {
+export class Jira implements Adapter<Version3Client> {
   readonly customFields = {
-    severity: 'customfield_12316142',
+    severity: 'customfield_10840',
   };
 
-  readonly api: Version2Client;
+  readonly api: Version3Client;
   issueDetails: IssueDetails | undefined;
 
   readonly tips = {
@@ -19,13 +19,15 @@ export class Jira implements Adapter<Version2Client> {
 
   constructor(
     readonly instance: string,
+    email: string,
     apiToken: string
   ) {
-    this.api = new Version2Client({
+    this.api = new Version3Client({
       host: instance,
       authentication: {
-        oauth2: {
-          accessToken: apiToken,
+        basic: {
+          email,
+          apiToken,
         },
       },
     });
@@ -36,7 +38,7 @@ export class Jira implements Adapter<Version2Client> {
 
     this.issueDetails = {
       id: response.key,
-      type: response.fields.issuetype.name,
+      type: response.fields.issuetype?.name ?? '',
       product: response.fields.versions[0]?.name ?? '',
       component: response.fields.components[0].name ?? '',
       summary: response.fields.summary,
