@@ -30,7 +30,7 @@
 
 <!-- -->
 
-The purpose of this action is to offer reliable validator Red Hat trackers like [Bugzilla](https://bugzilla.redhat.com/) and [JIRA](https://issues.redhat.com).
+The purpose of this action is to offer reliable validator Red Hat trackers like [Bugzilla](https://bugzilla.redhat.com/) and [JIRA](https://redhat.atlassian.net).
 
 ## Features
 
@@ -146,7 +146,7 @@ jobs:
           tracker-type: ${{ fromJSON(needs.commit-linter.outputs.validated-pr-metadata).validation.tracker.type }}
           bugzilla-instance: https://bugzilla.stage.redhat.com
           bugzilla-api-token: ${{ secrets.BUGZILLA_API_TOKEN }}
-          jira-instance: https://issues.redhat.com
+          jira-instance: https://redhat.atlassian.net
           jira-api-token: ${{ secrets.JIRA_API_TOKEN }}
           token: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -218,7 +218,7 @@ Component name is used for validation if provided tracker is targeting the expec
 
 The URL of the Bugzilla instance on which will be performed API requests and validation of trackers. For example: `bugzilla-instance: https://bugzilla.redhat.com`.
 
-* default value: `undefined`
+* default value: `https://bugzilla.redhat.com`
 * requirements: `optional`
 
 ### bugzilla-api-token
@@ -230,9 +230,16 @@ The Bugzilla API token is used for performing API requests. The token should be 
 
 ### jira-instance
 
-The URL of the Jira instance on which will be performed API requests and validation of trackers. For example: `jira-instance: https://issues.redhat.com`.
+The URL of the Jira instance on which will be performed API requests and validation of trackers. For example: `jira-instance: https://redhat.atlassian.net`.
 
-* default value: `undefined`
+* default value: `https://redhat.atlassian.net`
+* requirements: `required`
+
+### jira-email
+
+The email of the Jira user on which will be performed API requests. For example: `jira-email: systemd-maint@redhat.com`.
+
+* default value: `systemd-maint@redhat.com`
 * requirements: `required`
 
 ### jira-api-token

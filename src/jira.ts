@@ -155,7 +155,7 @@ export class Jira implements Adapter<Version3Client> {
 
     // The state can be changed only by a transition
     // In Progress transition id is 111
-    // to get the transition id, use: https://issues.redhat.com/rest/api/2/issue/<RHEL-XXXX>/transitions
+    // to get the transition id, use: https://redhat.atlassian.net/rest/api/2/issue/<RHEL-XXXX>/transitions
     await this.api.issues.doTransition({
       issueIdOrKey: this.issueDetails.id,
       transition: {
