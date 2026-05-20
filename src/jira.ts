@@ -1,6 +1,9 @@
 import { debug } from '@actions/core';
 import { Version3Client } from 'jira.js';
-import { RemoteIssueLink } from 'jira.js/dist/esm/types/version3/models';
+import {
+  IssueLink,
+  RemoteIssueLink,
+} from 'jira.js/dist/esm/types/version3/models';
 
 import { Adapter, IssueDetails } from './controller';
 import { raise } from './util';
@@ -12,6 +15,7 @@ export class Jira implements Adapter<Version3Client> {
 
   readonly api: Version3Client;
   issueDetails: IssueDetails | undefined;
+  backfillIssue: IssueLink | undefined;
 
   readonly tips = {
     approval: 'Jira is approved if it has set Fix Version/s',
@@ -48,7 +52,16 @@ export class Jira implements Adapter<Version3Client> {
         response.fields[this.customFields.severity] != null
           ? response.fields[this.customFields.severity].value
           : undefined,
+      issueLinks: response.fields.issuelinks ?? [],
     };
+
+    this.backfillIssue = this.issueDetails?.issueLinks?.find(link => {
+      return (
+        link.type?.outward === 'is triggering' &&
+        link.outwardIssue?.key?.startsWith('PLUMBER-') &&
+        link.outwardIssue?.fields?.status.name !== 'Closed'
+      );
+    });
 
     return this.issueDetails;
   }
@@ -58,24 +71,28 @@ export class Jira implements Adapter<Version3Client> {
     return response.version ?? raise('Jira.getVersion(): missing version.');
   }
 
-  getUrl(): string {
-    if (this.issueDetails === undefined) {
+  getUrl(issueId?: string): string {
+    const id = issueId ?? this.issueDetails?.id ?? '';
+
+    if (id === '') {
       raise(
         'Jira.getUrl(): missing issueDetails, call Jira.getIssueDetails() first.'
       );
     }
 
-    return `${this.instance}/browse/${this.issueDetails.id}`;
+    return `${this.instance}/browse/${id}`;
   }
 
-  getMarkdownUrl(): string {
-    if (this.issueDetails === undefined) {
+  getMarkdownUrl(issueId?: string): string {
+    const id = issueId ?? this.issueDetails?.id ?? '';
+
+    if (id === '') {
       raise(
         'Jira.getUrl(): missing issueDetails, call Jira.getIssueDetails() first.'
       );
     }
 
-    return `[${this.issueDetails.id}](${this.getUrl()})`;
+    return `[${id}](${this.getUrl(id)})`;
   }
 
   isMatchingProduct(products: string[] = []): boolean {
@@ -134,7 +151,7 @@ export class Jira implements Adapter<Version3Client> {
     return false;
   }
 
-  async changeState(): Promise<string> {
+  async changeState(draft: boolean): Promise<string> {
     if (this.issueDetails === undefined) {
       raise(
         'Jira.changeState(): missing issueDetails, call Jira.getIssueDetails() first.'
@@ -163,7 +180,25 @@ export class Jira implements Adapter<Version3Client> {
       },
     });
 
-    return `Jira issue ${this.getMarkdownUrl()} has changed state to 'In Progress'`;
+    const message = [];
+    if (this.backfillIssue && this.backfillIssue.outwardIssue?.key) {
+      const transition = draft
+        ? { id: '3', name: 'In Progress' }
+        : { id: '10154', name: 'Code Review' };
+
+      await this.api.issues.doTransition({
+        issueIdOrKey: this.backfillIssue.outwardIssue.key,
+        transition,
+      });
+      message.push(
+        `Jira issue ${this.getMarkdownUrl(this.backfillIssue.outwardIssue.key)} has changed state to '${transition.name}'`
+      );
+    }
+
+    message.push(
+      `Jira issue ${this.getMarkdownUrl()} has changed state to 'In Progress'`
+    );
+    return message.join('\n');
   }
 
   async addLink(urlType: string, bugId: string): Promise<string> {
