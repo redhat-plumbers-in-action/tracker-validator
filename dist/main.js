@@ -89862,6 +89862,8 @@ var Jira = class {
         id: "111"
       }
     });
+    debug(`IssueLinks: ${JSON.stringify(this.issueDetails?.issueLinks)}`);
+    debug(`Backfill issue: ${JSON.stringify(this.backfillIssue)}`);
     const message = [];
     if (this.backfillIssue && this.backfillIssue.outwardIssue?.key) {
       const transition = draft ? { id: "3", name: "In Progress" } : { id: "10154", name: "Code Review" };
