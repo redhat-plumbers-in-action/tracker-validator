@@ -199,6 +199,26 @@ async function action(
     );
   }
 
+  if (trackerController.adapter instanceof Jira) {
+    const backfillIssue = trackerController.adapter.backfillIssue;
+    if (!backfillIssue) {
+      message.push(
+        `🟠 Tracker ${trackerController.adapter.getMarkdownUrl()} is not linked to any backfill issue`
+      );
+    } else {
+      const backfillIssueKey = backfillIssue.outwardIssue?.key;
+      if (backfillIssueKey) {
+        message.push(
+          `🟢 Tracker ${trackerController.adapter.getMarkdownUrl()} is linked to backfill issue ${trackerController.adapter.getMarkdownUrl(backfillIssueKey)}`
+        );
+      } else {
+        message.push(
+          `🟠 Tracker ${trackerController.adapter.getMarkdownUrl()} has a backfill link, but the linked backfill issue key is unavailable`
+        );
+      }
+    }
+  }
+
   if (
     isMatchingProduct &&
     isMatchingComponent &&
@@ -212,7 +232,9 @@ async function action(
     notice(`🔗 ${linkMessage}`);
 
     debug(`Changing state of the tracker.`);
-    const stateMessage = await trackerController.adapter.changeState();
+    const stateMessage = await trackerController.adapter.changeState(
+      prMetadata.draft
+    );
     notice(`🎺 ${stateMessage}`);
   }
 

@@ -52,6 +52,7 @@ export class Bugzilla implements Adapter<BugzillaAPI> {
         }) ?? [],
       status: response.status,
       severity: response.severity,
+      issueLinks: [],
     };
 
     return this.issueDetails;
@@ -61,24 +62,28 @@ export class Bugzilla implements Adapter<BugzillaAPI> {
     return this.api.version();
   }
 
-  getUrl(): string {
-    if (this.issueDetails === undefined) {
+  getUrl(issueId?: string): string {
+    const id = issueId ?? this.issueDetails?.id ?? '';
+
+    if (id === '') {
       raise(
         'Bugzilla.getUrl(): missing issueDetails, call Bugzilla.getIssueDetails() first.'
       );
     }
 
-    return `${this.instance}/show_bug.cgi?id=${this.issueDetails.id}`;
+    return `${this.instance}/show_bug.cgi?id=${id}`;
   }
 
-  getMarkdownUrl(): string {
-    if (this.issueDetails === undefined) {
+  getMarkdownUrl(issueId?: string): string {
+    const id = issueId ?? this.issueDetails?.id ?? '';
+
+    if (id === '') {
       raise(
         'Bugzilla.getUrl(): missing issueDetails, call Bugzilla.getIssueDetails() first.'
       );
     }
 
-    return `[#${this.issueDetails.id}](${this.getUrl()})`;
+    return `[#${id}](${this.getUrl(id)})`;
   }
 
   isMatchingProduct(products: string[] = []): boolean {
@@ -133,7 +138,7 @@ export class Bugzilla implements Adapter<BugzillaAPI> {
     return approved !== undefined;
   }
 
-  async changeState(): Promise<string> {
+  async changeState(_draft: boolean): Promise<string> {
     if (this.issueDetails === undefined) {
       raise(
         'Bugzilla.changeState(): missing issueDetails, call Bugzilla.getIssueDetails() first.'

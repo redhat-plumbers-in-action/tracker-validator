@@ -3,6 +3,7 @@ import { Version3Client } from 'jira.js';
 
 import { Bugzilla } from './bugzilla';
 import { Jira } from './jira';
+import type { IssueLink } from 'jira.js/dist/esm/types/version3/models';
 
 export interface Adapter<T> {
   readonly api: T;
@@ -14,13 +15,13 @@ export interface Adapter<T> {
   getIssueDetails(id: string): Promise<IssueDetails>;
 
   getVersion(): Promise<string>;
-  getUrl(): string;
-  getMarkdownUrl(): string;
+  getUrl(issueId?: string): string;
+  getMarkdownUrl(issueId?: string): string;
   isMatchingProduct(products: string[]): boolean;
   isSeveritySet(): boolean;
   isMatchingComponent(component: string): boolean;
   isApproved(): boolean;
-  changeState(): Promise<string>;
+  changeState(draft: boolean): Promise<string>;
   addLink(urlType: string, bugId: string): Promise<string>;
 }
 
@@ -40,6 +41,7 @@ export type IssueDetails = {
   fixVersions?: string[];
   status: string;
   severity: string | undefined;
+  issueLinks: IssueLink[];
 };
 
 export type Flag = {
