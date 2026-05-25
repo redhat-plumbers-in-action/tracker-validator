@@ -180,9 +180,6 @@ export class Jira implements Adapter<Version3Client> {
       },
     });
 
-    debug(`IssueLinks: ${JSON.stringify(this.issueDetails?.issueLinks)}`);
-    debug(`Backfill issue: ${JSON.stringify(this.backfillIssue)}`);
-
     const message = [];
     if (this.backfillIssue && this.backfillIssue.outwardIssue?.key) {
       const transition = draft
