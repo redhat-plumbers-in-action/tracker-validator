@@ -76745,31 +76745,28 @@ var Bugzilla = class {
         };
       }) ?? [],
       status: response.status,
-      severity: response.severity,
-      issueLinks: []
+      severity: response.severity
     };
     return this.issueDetails;
   }
   async getVersion() {
     return this.api.version();
   }
-  getUrl(issueId) {
-    const id = issueId ?? this.issueDetails?.id ?? "";
-    if (id === "") {
+  getUrl() {
+    if (this.issueDetails === void 0) {
       raise(
         "Bugzilla.getUrl(): missing issueDetails, call Bugzilla.getIssueDetails() first."
       );
     }
-    return `${this.instance}/show_bug.cgi?id=${id}`;
+    return `${this.instance}/show_bug.cgi?id=${this.issueDetails.id}`;
   }
-  getMarkdownUrl(issueId) {
-    const id = issueId ?? this.issueDetails?.id ?? "";
-    if (id === "") {
+  getMarkdownUrl() {
+    if (this.issueDetails === void 0) {
       raise(
         "Bugzilla.getUrl(): missing issueDetails, call Bugzilla.getIssueDetails() first."
       );
     }
-    return `[#${id}](${this.getUrl(id)})`;
+    return `[#${this.issueDetails.id}](${this.getUrl()})`;
   }
   isMatchingProduct(products = []) {
     if (products.length === 0) {
@@ -76812,7 +76809,7 @@ var Bugzilla = class {
     );
     return approved !== void 0;
   }
-  async changeState(_draft) {
+  async changeState() {
     if (this.issueDetails === void 0) {
       raise(
         "Bugzilla.changeState(): missing issueDetails, call Bugzilla.getIssueDetails() first."
@@ -89770,35 +89767,29 @@ var Jira = class {
       summary: response.fields.summary,
       fixVersions: response.fields.fixVersions.map((version2) => version2.name),
       status: response.fields.status.name ?? "",
-      severity: response.fields[this.customFields.severity] != null ? response.fields[this.customFields.severity].value : void 0,
-      issueLinks: response.fields.issuelinks ?? []
+      severity: response.fields[this.customFields.severity] != null ? response.fields[this.customFields.severity].value : void 0
     };
-    this.backfillIssue = this.issueDetails?.issueLinks?.find((link) => {
-      return link.type?.outward === "is triggering" && link.outwardIssue?.key?.startsWith("PLUMBER-") && link.outwardIssue?.fields?.status.name !== "Closed";
-    });
     return this.issueDetails;
   }
   async getVersion() {
     const response = await this.api.serverInfo.getServerInfo();
     return response.version ?? raise("Jira.getVersion(): missing version.");
   }
-  getUrl(issueId) {
-    const id = issueId ?? this.issueDetails?.id ?? "";
-    if (id === "") {
+  getUrl() {
+    if (this.issueDetails === void 0) {
       raise(
         "Jira.getUrl(): missing issueDetails, call Jira.getIssueDetails() first."
       );
     }
-    return `${this.instance}/browse/${id}`;
+    return `${this.instance}/browse/${this.issueDetails.id}`;
   }
-  getMarkdownUrl(issueId) {
-    const id = issueId ?? this.issueDetails?.id ?? "";
-    if (id === "") {
+  getMarkdownUrl() {
+    if (this.issueDetails === void 0) {
       raise(
         "Jira.getUrl(): missing issueDetails, call Jira.getIssueDetails() first."
       );
     }
-    return `[${id}](${this.getUrl(id)})`;
+    return `[${this.issueDetails.id}](${this.getUrl()})`;
   }
   isMatchingProduct(products = []) {
     if (products.length === 0) {
@@ -89843,7 +89834,7 @@ var Jira = class {
     }
     return false;
   }
-  async changeState(draft) {
+  async changeState() {
     if (this.issueDetails === void 0) {
       raise(
         "Jira.changeState(): missing issueDetails, call Jira.getIssueDetails() first."
@@ -89862,21 +89853,7 @@ var Jira = class {
         id: "111"
       }
     });
-    const message = [];
-    if (this.backfillIssue && this.backfillIssue.outwardIssue?.key) {
-      const transition = draft ? { id: "3", name: "In Progress" } : { id: "10154", name: "Code Review" };
-      await this.api.issues.doTransition({
-        issueIdOrKey: this.backfillIssue.outwardIssue.key,
-        transition
-      });
-      message.push(
-        `Jira issue ${this.getMarkdownUrl(this.backfillIssue.outwardIssue.key)} has changed state to '${transition.name}'`
-      );
-    }
-    message.push(
-      `Jira issue ${this.getMarkdownUrl()} has changed state to 'In Progress'`
-    );
-    return message.join("\n");
+    return `Jira issue ${this.getMarkdownUrl()} has changed state to 'In Progress'`;
   }
   async addLink(urlType, bugId) {
     if (this.issueDetails === void 0) {
@@ -90050,25 +90027,6 @@ async function action(octokit2, prMetadata2) {
       `\u{1F7E2} Tracker ${trackerController.adapter.getMarkdownUrl()} has set severity`
     );
   }
-  if (trackerController.adapter instanceof Jira) {
-    const backfillIssue = trackerController.adapter.backfillIssue;
-    if (!backfillIssue) {
-      message.push(
-        `\u{1F7E0} Tracker ${trackerController.adapter.getMarkdownUrl()} is not linked to any backfill issue`
-      );
-    } else {
-      const backfillIssueKey = backfillIssue.outwardIssue?.key;
-      if (backfillIssueKey) {
-        message.push(
-          `\u{1F7E2} Tracker ${trackerController.adapter.getMarkdownUrl()} is linked to backfill issue ${trackerController.adapter.getMarkdownUrl(backfillIssueKey)}`
-        );
-      } else {
-        message.push(
-          `\u{1F7E0} Tracker ${trackerController.adapter.getMarkdownUrl()} has a backfill link, but the linked backfill issue key is unavailable`
-        );
-      }
-    }
-  }
   if (isMatchingProduct && isMatchingComponent && (isSeveritySet || isStoryType)) {
     debug(`Linking PR with tracker.`);
     const linkMessage = await trackerController.adapter.addLink(
@@ -90077,9 +90035,7 @@ async function action(octokit2, prMetadata2) {
     );
     notice(`\u{1F517} ${linkMessage}`);
     debug(`Changing state of the tracker.`);
-    const stateMessage = await trackerController.adapter.changeState(
-      prMetadata2.draft
-    );
+    const stateMessage = await trackerController.adapter.changeState();
     notice(`\u{1F3BA} ${stateMessage}`);
   }
   setLabels(octokit2, prMetadata2.number, labels.add);
@@ -90109,7 +90065,6 @@ var singleCommitMetadataSchema = external_exports.object({
 var commitMetadataSchema = external_exports.array(singleCommitMetadataSchema);
 var pullRequestMetadataSchema = external_exports.object({
   number: external_exports.number(),
-  draft: external_exports.boolean(),
   base: external_exports.string(),
   ref: external_exports.string(),
   commits: commitMetadataSchema
