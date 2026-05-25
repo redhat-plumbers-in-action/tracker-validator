@@ -38,7 +38,6 @@ describe('test Jira API', () => {
           "rhel-10.0.beta",
         ],
         "id": "RHEL-678",
-        "issueLinks": [],
         "product": "rhel-10.0",
         "severity": "Low",
         "status": "Closed",
@@ -64,7 +63,6 @@ describe('test Jira API', () => {
           "rhel-10.0.beta",
         ],
         "id": "RHEL-678",
-        "issueLinks": [],
         "product": "rhel-10.0",
         "severity": "Low",
         "status": "Closed",
@@ -84,7 +82,6 @@ describe('test Jira API', () => {
       summary: 'RHEL 9 bug',
       status: 'New',
       severity: undefined,
-      issueLinks: [],
     };
 
     expect(context.jira.getUrl()).toEqual(
@@ -102,7 +99,6 @@ describe('test Jira API', () => {
       summary: 'RHEL 9 bug',
       status: 'New',
       severity: undefined,
-      issueLinks: [],
     };
 
     expect(context.jira.getMarkdownUrl()).toEqual(
@@ -120,7 +116,6 @@ describe('test Jira API', () => {
       summary: 'RHEL 9 bug',
       status: 'New',
       severity: undefined,
-      issueLinks: [],
     };
     context.jira.issueDetails = issue;
 
@@ -140,7 +135,6 @@ describe('test Jira API', () => {
       summary: 'Fedora Bug',
       status: 'New',
       severity: undefined,
-      issueLinks: [],
     };
     context.jira.issueDetails = issue;
 
@@ -166,7 +160,6 @@ describe('test Jira API', () => {
       summary: 'Fedora Bug',
       status: 'New',
       severity: undefined,
-      issueLinks: [],
     };
     context.jira.issueDetails = issue;
 
