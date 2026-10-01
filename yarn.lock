@@ -432,6 +432,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@octokit/openapi-types@npm:^29.0.1":
+  version: 29.0.1
+  resolution: "@octokit/openapi-types@npm:29.0.1"
+  checksum: 10c0/1f1550a7877bb23584396a976d3f3b71c8496a86c135072050ff7ddfc0cd816804373ccc233bafab3a31a0178114e2599846cf54416f32f310712fc05699c5f7
+  languageName: node
+  linkType: hard
+
 "@octokit/plugin-paginate-rest@npm:^14.0.0":
   version: 14.0.0
   resolution: "@octokit/plugin-paginate-rest@npm:14.0.0"
@@ -511,7 +518,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/types@npm:16.0.0, @octokit/types@npm:^16.0.0":
+"@octokit/types@npm:18.0.0":
+  version: 18.0.0
+  resolution: "@octokit/types@npm:18.0.0"
+  dependencies:
+    "@octokit/openapi-types": "npm:^29.0.1"
+  checksum: 10c0/d7336d2a4176684820388a6c6cf5bc8249672fad1f81f641c6ac30d2da123c0475fb752d3b16edf7cd3715e8fb01d3765c0e2f7ed724a6fbf7f84a1becd04bb5
+  languageName: node
+  linkType: hard
+
+"@octokit/types@npm:^16.0.0":
   version: 16.0.0
   resolution: "@octokit/types@npm:16.0.0"
   dependencies:
@@ -1985,7 +2001,7 @@ __metadata:
     "@octokit/core": "npm:7.0.6"
     "@octokit/plugin-throttling": "npm:11.0.3"
     "@octokit/rest": "npm:22.0.1"
-    "@octokit/types": "npm:16.0.0"
+    "@octokit/types": "npm:18.0.0"
     "@probot/octokit-plugin-config": "npm:4.1.0"
     "@total-typescript/ts-reset": "npm:0.6.1"
     "@types/node": "npm:25.9.1"

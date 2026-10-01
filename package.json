@@ -30,7 +30,7 @@
     "@octokit/core": "7.0.6",
     "@octokit/plugin-throttling": "11.0.3",
     "@octokit/rest": "22.0.1",
-    "@octokit/types": "16.0.0",
+    "@octokit/types": "18.0.0",
     "@probot/octokit-plugin-config": "4.1.0",
     "bugzilla": "3.1.6",
     "deepmerge": "^4.3.1",
