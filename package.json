@@ -27,27 +27,28 @@
   "type": "module",
   "dependencies": {
     "@actions/core": "3.0.1",
-    "@octokit/core": "7.0.6",
-    "@octokit/plugin-throttling": "11.0.3",
+    "@octokit/core": "7.0.8",
+    "@octokit/plugin-throttling": "11.0.5",
     "@octokit/rest": "22.0.1",
     "@octokit/types": "18.0.0",
     "@probot/octokit-plugin-config": "4.1.0",
     "bugzilla": "3.1.6",
     "deepmerge": "^4.3.1",
-    "dotenv": "17.4.2",
-    "jira.js": "5.3.1",
+    "dotenv": "18.0.4",
+    "jira.js": "5.4.0",
     "node-fetch": "3.3.2",
-    "zod": "4.4.3"
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@actions/github": "9.1.1",
     "@total-typescript/ts-reset": "0.6.1",
-    "@types/node": "25.9.1",
-    "@vitest/coverage-v8": "4.1.7",
-    "esbuild": "^0.28.0",
+    "@types/node": "26.6.3",
+    "@vitest/coverage-v8": "5.0.3",
+    "esbuild": "^0.28.2",
     "prettier": "3.9.9",
     "ts-node": "10.9.2",
-    "typescript": "6.0.3",
-    "vitest": "4.1.11"
+    "typescript": "7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "5.0.3"
   }
 }
